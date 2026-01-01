@@ -126,7 +126,7 @@ function sendWelcomeEmail(email, name) {
           <div style="background: #ecf0f1; padding: 15px; border-radius: 5px; margin: 20px 0;">
             <p style="margin: 0;"><strong>📧 Your Email:</strong> ${email}</p>
             <p style="margin: 10px 0 0 0;"><strong>🔗 Login URL:</strong> 
-              <a href="YOUR_APP_URL/pages/login.html" style="color: #3498db;">Click here to login</a>
+              <a href="https://ccitsu.github.io/dacs/index.html" style="color: #3498db;">Click here to login</a>
             </p>
           </div>
           
@@ -171,7 +171,7 @@ function sendPasswordResetEmail(email, name, tempPassword) {
           </ul>
           
           <p>
-            <a href="YOUR_APP_URL/pages/login.html" 
+            <a href="https://ccitsu.github.io/dacs/pages/login.html" 
                style="display: inline-block; background: #3498db; color: white; padding: 12px 30px; 
                       text-decoration: none; border-radius: 5px; margin-top: 10px;">
               Login Now
@@ -282,7 +282,7 @@ function sendStudentSubmissionEmail(email, name, requestId) {
           <p>You can track your request status anytime by logging into your dashboard.</p>
           
           <p>
-            <a href="YOUR_APP_URL/pages/student-dashboard.html" 
+            <a href="https://ccitsu.github.io/dacs/pages/student-dashboard.html" 
                style="display: inline-block; background: #3498db; color: white; padding: 12px 30px; 
                       text-decoration: none; border-radius: 5px; margin-top: 10px;">
               View Dashboard
@@ -327,7 +327,7 @@ function sendAdvisorNotificationEmail(advisorEmail, studentName, requestId) {
           <p>Please log in to your dashboard to review and take action on this request.</p>
           
           <p>
-            <a href="YOUR_APP_URL/pages/advisor-dashboard.html" 
+            <a href="https://ccitsu.github.io/dacs/pages/advisor-dashboard.html" 
                style="display: inline-block; background: #f39c12; color: white; padding: 12px 30px; 
                       text-decoration: none; border-radius: 5px; margin-top: 10px;">
               Review Request
@@ -485,7 +485,7 @@ function sendStudentStatusEmail(email, name, requestId, status, approverRole, co
           ` : ''}
           
           <p>
-            <a href="YOUR_APP_URL/pages/student-dashboard.html" 
+            <a href="https://ccitsu.github.io/dacs/pages/student-dashboard.html" 
                style="display: inline-block; background: #3498db; color: white; padding: 12px 30px; 
                       text-decoration: none; border-radius: 5px; margin-top: 10px;">
               View Dashboard
@@ -573,7 +573,7 @@ function sendHODNotificationEmail(requestId, studentName) {
           <p>Please log in to your dashboard to review this request.</p>
           
           <p>
-            <a href="YOUR_APP_URL/pages/hod-dashboard.html" 
+            <a href="https://ccitsu.github.io/dacs/pages/hod-dashboard.html" 
                style="display: inline-block; background: #f39c12; color: white; padding: 12px 30px; 
                       text-decoration: none; border-radius: 5px; margin-top: 10px;">
               Review Request
@@ -661,7 +661,7 @@ function sendRegistrarNotificationEmail(requestId, studentName) {
           <p>Please process this request and generate the final approval document.</p>
           
           <p>
-            <a href="YOUR_APP_URL/pages/registrar-dashboard.html" 
+            <a href="https://ccitsu.github.io/dacs/pages/registrar-dashboard.html" 
                style="display: inline-block; background: #9b59b6; color: white; padding: 12px 30px; 
                       text-decoration: none; border-radius: 5px; margin-top: 10px;">
               Process Request
