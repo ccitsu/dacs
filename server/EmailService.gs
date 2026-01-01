@@ -74,7 +74,7 @@ function sendVerificationEmail(email, fullName, verificationCode) {
             <p>Enter this code on the registration page to verify your email address and activate your account.</p>
             
             <p style="color: #666; font-size: 14px; margin-top: 30px;">
-              Having trouble? Contact us at support@ccit.shaqra.edu.sa
+              Having trouble? Contact us at nayyar@su.edu.sa
             </p>
           </div>
           <div class="footer">
