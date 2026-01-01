@@ -9,6 +9,7 @@
 
 const EMAIL_CONFIG = {
   FROM_NAME: 'Course Add/Drop System - CCIT',
+  APP_URL: 'https://ccitsu.github.io/dacs',
   SIGNATURE: `
     <br><br>
     <p style="color: #7f8c8d; font-size: 0.9em;">
@@ -74,7 +75,7 @@ function sendVerificationEmail(email, fullName, verificationCode) {
             <p>Enter this code on the registration page to verify your email address and activate your account.</p>
             
             <p style="color: #666; font-size: 14px; margin-top: 30px;">
-              Having trouble? Contact us at nayyar@su.edu.sa
+              Having trouble? Contact us at support@ccit.shaqra.edu.sa
             </p>
           </div>
           <div class="footer">
@@ -282,7 +283,7 @@ function sendStudentSubmissionEmail(email, name, requestId) {
           <p>You can track your request status anytime by logging into your dashboard.</p>
           
           <p>
-            <a href="https://ccitsu.github.io/dacs/pages/student-dashboard.html" 
+            <a href="${EMAIL_CONFIG.APP_URL}/pages/student-dashboard.html" 
                style="display: inline-block; background: #3498db; color: white; padding: 12px 30px; 
                       text-decoration: none; border-radius: 5px; margin-top: 10px;">
               View Dashboard
@@ -327,7 +328,7 @@ function sendAdvisorNotificationEmail(advisorEmail, studentName, requestId) {
           <p>Please log in to your dashboard to review and take action on this request.</p>
           
           <p>
-            <a href="https://ccitsu.github.io/dacs/pages/advisor-dashboard.html" 
+            <a href="${EMAIL_CONFIG.APP_URL}/pages/advisor-dashboard.html" 
                style="display: inline-block; background: #f39c12; color: white; padding: 12px 30px; 
                       text-decoration: none; border-radius: 5px; margin-top: 10px;">
               Review Request
@@ -485,7 +486,7 @@ function sendStudentStatusEmail(email, name, requestId, status, approverRole, co
           ` : ''}
           
           <p>
-            <a href="https://ccitsu.github.io/dacs/pages/student-dashboard.html" 
+            <a href="${EMAIL_CONFIG.APP_URL}/pages/student-dashboard.html" 
                style="display: inline-block; background: #3498db; color: white; padding: 12px 30px; 
                       text-decoration: none; border-radius: 5px; margin-top: 10px;">
               View Dashboard
@@ -573,7 +574,7 @@ function sendHODNotificationEmail(requestId, studentName) {
           <p>Please log in to your dashboard to review this request.</p>
           
           <p>
-            <a href="https://ccitsu.github.io/dacs/pages/hod-dashboard.html" 
+            <a href="${EMAIL_CONFIG.APP_URL}/pages/hod-dashboard.html" 
                style="display: inline-block; background: #f39c12; color: white; padding: 12px 30px; 
                       text-decoration: none; border-radius: 5px; margin-top: 10px;">
               Review Request
@@ -661,7 +662,7 @@ function sendRegistrarNotificationEmail(requestId, studentName) {
           <p>Please process this request and generate the final approval document.</p>
           
           <p>
-            <a href="https://ccitsu.github.io/dacs/pages/registrar-dashboard.html" 
+            <a href="${EMAIL_CONFIG.APP_URL}/pages/registrar-dashboard.html" 
                style="display: inline-block; background: #9b59b6; color: white; padding: 12px 30px; 
                       text-decoration: none; border-radius: 5px; margin-top: 10px;">
               Process Request
