@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Course Add/Drop Management System - Shaqra University CCIT">
+  <title>Course Add/Drop System - Shaqra University</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">
+          <img src="assets/LogoC.JPG" alt="Shaqra University Logo">
+        </div>
+        <span>Course Add/Drop System</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="pages/login.html" class="btn">Login</a></li>
+        <li><a href="pages/register.html" class="btn btn-outline">Register</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <h1>Welcome to Course Add/Drop Management System</h1>
+      <p>Streamline your course registration process at Shaqra University - College of Computing and Information Technology</p>
+      <div class="hero-buttons">
+        <a href="pages/register.html" class="btn btn-primary">Get Started</a>
+        <a href="pages/login.html" class="btn btn-outline">Login to Your Account</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <div class="container">
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon">👨‍🎓</div>
+        <h3>Easy Registration</h3>
+        <p>Quick and simple student registration process with secure account creation</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <h3>Course Selection</h3>
+        <p>Browse and select courses with detailed information about schedules, credits, and sections</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">✅</div>
+        <h3>3-Level Approval</h3>
+        <p>Systematic workflow through Advisor, Head of Department, and Registrar approval</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">📧</div>
+        <h3>Email Notifications</h3>
+        <p>Automatic email updates at each stage to keep all stakeholders informed</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Real-time Status</h3>
+        <p>Track your application status in real-time through your personalized dashboard</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">📄</div>
+        <h3>PDF Generation</h3>
+        <p>Automatic PDF generation of approved forms with all approval signatures</p>
+      </div>
+    </div>
+
+    <!-- How It Works Section -->
+    <div class="card">
+      <div class="card-header">
+        <h2>How It Works</h2>
+        <p>5-Step Approval Workflow Process</p>
+      </div>
+      
+      <div class="workflow-infographic">
+        <!-- Step 1 -->
+        <div class="workflow-step">
+          <div class="step-circle">
+            <div class="step-icon">📝</div>
+            <div class="step-number">1</div>
+          </div>
+          <h4>Student Submission</h4>
+          <p>Register and select courses to add or drop</p>
+        </div>
+
+        <!-- Arrow -->
+        <div class="workflow-arrow">
+          <svg viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                <polygon points="0 0, 10 3, 0 6" fill="var(--brand-secondary)" />
+              </marker>
+            </defs>
+            <path d="M 0 20 Q 30 5, 60 20" stroke="var(--brand-secondary)" stroke-width="3" fill="none" marker-end="url(#arrowhead)" stroke-dasharray="5,5"/>
+          </svg>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="workflow-step">
+          <div class="step-circle">
+            <div class="step-icon">👨‍🏫</div>
+            <div class="step-number">2</div>
+          </div>
+          <h4>Advisor Review</h4>
+          <p>Academic advisor verifies and approves</p>
+        </div>
+
+        <!-- Arrow -->
+        <div class="workflow-arrow">
+          <svg viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrowhead2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                <polygon points="0 0, 10 3, 0 6" fill="var(--brand-secondary)" />
+              </marker>
+            </defs>
+            <path d="M 0 20 Q 30 5, 60 20" stroke="var(--brand-secondary)" stroke-width="3" fill="none" marker-end="url(#arrowhead2)" stroke-dasharray="5,5"/>
+          </svg>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="workflow-step">
+          <div class="step-circle">
+            <div class="step-icon">👔</div>
+            <div class="step-number">3</div>
+          </div>
+          <h4>HOD Approval</h4>
+          <p>Department head reviews and approves</p>
+        </div>
+
+        <!-- Arrow -->
+        <div class="workflow-arrow">
+          <svg viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrowhead3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                <polygon points="0 0, 10 3, 0 6" fill="var(--brand-secondary)" />
+              </marker>
+            </defs>
+            <path d="M 0 20 Q 30 5, 60 20" stroke="var(--brand-secondary)" stroke-width="3" fill="none" marker-end="url(#arrowhead3)" stroke-dasharray="5,5"/>
+          </svg>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="workflow-step">
+          <div class="step-circle">
+            <div class="step-icon">⚙️</div>
+            <div class="step-number">4</div>
+          </div>
+          <h4>Registrar Processing</h4>
+          <p>Final verification and system registration</p>
+        </div>
+
+        <!-- Arrow -->
+        <div class="workflow-arrow">
+          <svg viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrowhead4" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                <polygon points="0 0, 10 3, 0 6" fill="var(--brand-secondary)" />
+              </marker>
+            </defs>
+            <path d="M 0 20 Q 30 5, 60 20" stroke="var(--brand-secondary)" stroke-width="3" fill="none" marker-end="url(#arrowhead4)" stroke-dasharray="5,5"/>
+          </svg>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="workflow-step final">
+          <div class="step-circle">
+            <div class="step-icon">✅</div>
+            <div class="step-number">5</div>
+          </div>
+          <h4>Confirmation & PDF</h4>
+          <p>PDF generated and sent to all stakeholders</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Section -->
+    <div class="card text-center">
+      <div class="card-header">
+        <h2>Need Help?</h2>
+        <p>Contact our support team for assistance</p>
+      </div>
+      <p style="color: var(--dark-text); margin-bottom: 1rem;">
+        <strong>College of Computing and Information Technology</strong><br>
+        Shaqra University, Saudi Arabia<br>
+        Email: nayyar@su.edu.sa<br>
+        Phone: +966 11 647 5526
+      </p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-logo">
+        <div style="text-align: center;">
+          <div style="font-weight: var(--font-weight-bold); font-size: var(--font-size-base); text-align: center;">Shaqra University</div>
+          <div style="font-size: var(--font-size-sm); opacity: 0.9; text-align: center;">Course Add/Drop Management System</div>
+        </div>
+      </div>
+      <p style="text-align: center;">&copy; 2025 Shaqra University - College of Computing and IT. All rights reserved.</p>
+      <div class="footer-links" style="text-align: center;">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Help & Support</a>
+        <a href="#">Contact Us</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="script.js"></script>
+  <script>
+    // Check if user is already logged in
+    if (DACSystem.isLoggedIn()) {
+      const session = DACSystem.getSession();
+      // Redirect to appropriate dashboard
+      const dashboards = {
+        'student': 'pages/student-dashboard.html',
+        'advisor': 'pages/advisor-dashboard.html',
+        'hod': 'pages/hod-dashboard.html',
+        'registrar': 'pages/registrar-dashboard.html'
+      };
+      if (dashboards[session.role]) {
+        window.location.href = dashboards[session.role];
+      }
+    }
+  </script>
+</body>
+</html>

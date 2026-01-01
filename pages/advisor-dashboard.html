@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advisor Dashboard - Course Add/Drop System</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body class="advisor-dashboard-page">
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="../index.html" class="logo">
+        <div class="logo-icon">
+          <img src="../assets/LogoC.JPG" alt="Shaqra University Logo">
+        </div>
+        <span>Course Add/Drop System</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="advisor-dashboard.html">Dashboard</a></li>
+        <li><a href="profile.html">Profile</a></li>
+        <li><a href="#" id="logoutBtn">Logout</a></li>
+      </ul>
+      <button class="hamburger" aria-label="Toggle navigation menu">☰</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="dashboard single-column">
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+          <h1>Advisor Dashboard</h1>
+          <p>Review and approve student add/drop requests</p>
+          <div class="user-chips">
+            <span class="chip chip-strong" id="userRole">Academic Advisor</span>
+            <span class="chip chip-ghost" id="userDept">Department</span>
+          </div>
+        </div>
+
+        <div class="action-bar">
+          <button class="btn btn-secondary" id="pendingBtn">⏳ Pending Requests</button>
+          <button class="btn btn-secondary" id="reviewedBtn">✓ Reviewed</button>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="dashboard-stats">
+          <div class="stat-card warning">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-value" id="awaitingCount">0</div>
+            <div class="stat-label">Awaiting Review</div>
+          </div>
+          <div class="stat-card success">
+            <div class="stat-icon">✓</div>
+            <div class="stat-value" id="approvedCount">0</div>
+            <div class="stat-label">Approved</div>
+          </div>
+          <div class="stat-card danger">
+            <div class="stat-icon">✗</div>
+            <div class="stat-value" id="rejectedCount">0</div>
+            <div class="stat-label">Rejected</div>
+          </div>
+          <div class="stat-card primary">
+            <div class="stat-icon">📋</div>
+            <div class="stat-value" id="totalCount">0</div>
+            <div class="stat-label">Total Requests</div>
+          </div>
+        </div>
+
+        <!-- Requests Table -->
+        <div class="card">
+          <div class="card-header flex-between">
+            <div>
+              <h2>Student Requests</h2>
+              <p>Review and take action on student requests</p>
+            </div>
+            <div class="flex gap-2">
+              <select id="filterStatus" class="form-group" style="margin: 0; padding: 0.6rem; border: 2px solid var(--border-color); border-radius: 8px;">
+                <option value="all">All Requests</option>
+                <option value="awaiting_advisor" selected>Awaiting My Review</option>
+                <option value="approved">Approved by Me</option>
+                <option value="rejected">Rejected by Me</option>
+              </select>
+              <button class="btn btn-secondary" onclick="loadRequests()">🔄 Refresh</button>
+            </div>
+          </div>
+          <div class="table-container">
+            <table id="requestsTable">
+              <thead>
+                <tr>
+                  <th>Request ID</th>
+                  <th>Student</th>
+                  <th>Type</th>
+                  <th>Course</th>
+                  <th>Status</th>
+                  <th>Submitted</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="requestsTableBody">
+                <tr>
+                  <td colspan="7" class="text-center">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Review Request Modal -->
+  <div id="reviewModal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+      <div class="modal-header">
+        <h2>Review Request</h2>
+        <button class="modal-close" onclick="DACSystem.hideModal('reviewModal')">&times;</button>
+      </div>
+      
+      <div id="reviewContent">
+        <!-- Content will be populated dynamically -->
+      </div>
+
+      <form id="reviewForm">
+        <input type="hidden" id="reviewRequestId" name="requestId">
+        
+        <div class="form-group">
+          <label for="advisorComments">Comments (Optional)</label>
+          <textarea id="advisorComments" name="comments" placeholder="Add any comments or feedback for the student"></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="DACSystem.hideModal('reviewModal')">Cancel</button>
+          <button type="button" class="btn btn-danger" onclick="handleReview('rejected')">Reject</button>
+          <button type="button" class="btn btn-success" onclick="handleReview('approved')">Approve</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../script.js"></script>
+  <script>
+    // Check authentication
+    if (!DACSystem.requireAuth()) {
+      window.location.href = 'login.html';
+    }
+
+    const session = DACSystem.getSession();
+    if (session.role !== 'advisor') {
+      window.location.href = session.role === 'student' ? 'student-dashboard.html' : `${session.role}-dashboard.html`;
+    }
+
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', async () => {
+      loadUserInfo();
+      await loadRequests();
+      setupEventListeners();
+    });
+
+    function loadUserInfo() {
+      const roleEl = document.getElementById('userRole');
+      if (roleEl) roleEl.textContent = session.role.replace('_', ' ').toUpperCase();
+      const deptEl = document.getElementById('userDept');
+      if (deptEl) deptEl.textContent = session.department || '—';
+    }
+
+    async function loadRequests() {
+      try {
+        const filterStatus = document.getElementById('filterStatus').value;
+        const allRequests = await DACSystem.getRequests('advisor', session.id);
+        
+        // Filter based on selected status
+        let filteredRequests = allRequests;
+        if (filterStatus !== 'all') {
+          filteredRequests = allRequests.filter(r => {
+            if (filterStatus === 'awaiting_advisor') {
+              return r.status === 'awaiting_advisor';
+            }
+            if (filterStatus === 'approved') {
+              return (r.advisorApproval === 'approved') || (r.status === 'awaiting_hod' && r.advisorApproval === 'approved');
+            }
+            if (filterStatus === 'rejected') {
+              return r.advisorApproval === 'rejected';
+            }
+            return r.status === filterStatus;
+          });
+        }
+        
+        displayRequests(filteredRequests);
+        updateStatistics(allRequests);
+      } catch (error) {
+        console.error('Error loading requests:', error);
+        document.getElementById('requestsTableBody').innerHTML = 
+          '<tr><td colspan="7" class="text-center">Error loading requests</td></tr>';
+      }
+    }
+
+    function displayRequests(requests) {
+      const tbody = document.getElementById('requestsTableBody');
+      
+      if (requests.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">No requests found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = requests.map(req => `
+        <tr>
+          <td><strong>#${req.id}</strong></td>
+          <td>${req.studentName}<br><small style="color: var(--light-text);">${req.studentEmail}</small></td>
+          <td><span class="badge badge-${req.type === 'add' ? 'success' : 'warning'}">${req.type.toUpperCase()}</span></td>
+          <td>${req.courseCode || 'N/A'}<br><small>${req.courseName || ''}</small></td>
+          <td>${DACSystem.getStatusBadge(req.status)}</td>
+          <td>${DACSystem.formatDate(req.submittedDate)}</td>
+          <td>
+            ${req.status === 'awaiting_advisor' ? 
+              `<div style="display:flex; gap:0.35rem; flex-wrap: wrap;">
+                 <button class="btn btn-primary" onclick="reviewRequest('${req.id}')" style="padding: 0.4rem 1rem;">Review</button>
+                 <button class="btn btn-success" onclick="quickAdvisorDecision('${req.id}','approved')" style="padding: 0.4rem 0.9rem;">Approve</button>
+                 <button class="btn btn-danger" onclick="quickAdvisorDecision('${req.id}','rejected')" style="padding: 0.4rem 0.9rem;">Reject</button>
+               </div>` :
+              `<button class="btn btn-secondary" onclick="viewRequest('${req.id}')" style="padding: 0.4rem 1rem;">View</button>`
+            }
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function updateStatistics(requests) {
+      document.getElementById('totalCount').textContent = requests.length;
+      document.getElementById('awaitingCount').textContent = 
+        requests.filter(r => r.status === 'awaiting_advisor').length;
+      document.getElementById('approvedCount').textContent = 
+        requests.filter(r => r.advisorApproval === 'approved').length;
+      document.getElementById('rejectedCount').textContent = 
+        requests.filter(r => r.advisorApproval === 'rejected').length;
+    }
+
+    function setupEventListeners() {
+      // Filter change
+      document.getElementById('filterStatus').addEventListener('change', loadRequests);
+
+      // Sidebar buttons
+      document.getElementById('pendingBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('filterStatus').value = 'awaiting_advisor';
+        loadRequests();
+      });
+
+      document.getElementById('reviewedBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('filterStatus').value = 'approved';
+        loadRequests();
+      });
+
+      // Logout button
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          DACSystem.logout();
+        });
+      }
+    }
+
+    async function reviewRequest(requestId) {
+      try {
+        const requests = await DACSystem.getRequests('advisor', session.id);
+        const request = requests.find(r => r.id === requestId);
+        
+        if (!request) {
+          DACSystem.showAlert('Request not found', 'danger');
+          return;
+        }
+
+        displayReviewContent(request);
+        document.getElementById('reviewRequestId').value = requestId;
+        DACSystem.showModal('reviewModal');
+      } catch (error) {
+        DACSystem.showAlert('Error loading request details', 'danger');
+      }
+    }
+
+    function displayReviewContent(request) {
+      const content = document.getElementById('reviewContent');
+      
+      // Parse course details from JSON if available
+      let coursesToAdd = [];
+      let coursesToDrop = [];
+      
+      if (request.courseDetails && typeof request.courseDetails === 'object') {
+        coursesToAdd = request.courseDetails.coursesToAdd || [];
+        coursesToDrop = request.courseDetails.coursesToDrop || [];
+      }
+      
+      // Build courses HTML
+      let coursesHTML = '';
+      if (request.type === 'add' || request.type === 'both') {
+        if (coursesToAdd.length > 0) {
+          coursesHTML += '<h4 style="color: var(--primary-color); margin-top: 1rem;">📚 Courses to Add:</h4>';
+          coursesToAdd.forEach((course, idx) => {
+            coursesHTML += `
+              <div style="background: #f0f8f4; padding: 1rem; margin: 0.5rem 0; border-left: 4px solid var(--success-color); border-radius: 4px;">
+                <strong>${idx + 1}. ${course.code} - ${course.name}</strong><br>
+                <small>Activity Type: ${course.activityType || 'N/A'}</small><br>
+                <small>Section: ${course.section || 'N/A'} | Day: ${course.day || 'N/A'} | Time: ${course.time || 'N/A'}</small><br>
+                <small>Credit Hours: ${course.creditHours || 'N/A'}</small>
+              </div>
+            `;
+          });
+        }
+      }
+      
+      if (request.type === 'drop' || request.type === 'both') {
+        if (coursesToDrop.length > 0) {
+          coursesHTML += '<h4 style="color: var(--warning-color); margin-top: 1rem;">🗑️ Courses to Drop:</h4>';
+          coursesToDrop.forEach((courseCode, idx) => {
+            coursesHTML += `
+              <div style="background: #fff8f0; padding: 1rem; margin: 0.5rem 0; border-left: 4px solid var(--warning-color); border-radius: 4px;">
+                <strong>${idx + 1}. ${courseCode}</strong>
+              </div>
+            `;
+          });
+        }
+      }
+      
+      content.innerHTML = `
+        <div class="course-card">
+          <h3>Student Information</h3>
+          <div class="course-details">
+            <div class="course-detail"><strong>Name:</strong> ${request.studentName}</div>
+            <div class="course-detail"><strong>ID:</strong> ${request.studentId}</div>
+            <div class="course-detail"><strong>Email:</strong> ${request.studentEmail}</div>
+            <div class="course-detail"><strong>Department:</strong> ${request.department || 'N/A'}</div>
+            <div class="course-detail"><strong>Level:</strong> ${request.level || 'N/A'}</div>
+            <div class="course-detail"><strong>Completed Hours:</strong> ${request.completedHours || 'N/A'}</div>
+            <div class="course-detail"><strong>GPA:</strong> ${request.gpa || 'N/A'}</div>
+          </div>
+
+          <h3 style="margin-top: 1.5rem;">Request Details</h3>
+          <div class="course-details">
+            <div class="course-detail"><strong>Request ID:</strong> #${request.id}</div>
+            <div class="course-detail"><strong>Type:</strong> <span class="badge badge-${request.type === 'add' ? 'success' : request.type === 'drop' ? 'danger' : 'primary'}">${request.type.toUpperCase()}</span></div>
+            <div class="course-detail"><strong>Submitted:</strong> ${DACSystem.formatDate(request.submittedDate)}</div>
+            <div class="course-detail"><strong>Current Status:</strong> ${DACSystem.getStatusBadge(request.status)}</div>
+          </div>
+
+          <h3 style="margin-top: 1.5rem;">Course Information</h3>
+          ${coursesHTML || '<p style="color: var(--light-text);">No course details available</p>'}
+
+          <h3 style="margin-top: 1.5rem;">Student's Reason</h3>
+          <p style="background: var(--light-bg); padding: 1rem; border-radius: 8px;">${request.reason || 'No reason provided'}</p>
+
+          ${request.pdfUrl ? `<h3 style="margin-top: 1.5rem;">Approval Document</h3><a href="${request.pdfUrl}" target="_blank" class="btn btn-primary" style="display: inline-block;">📄 Download Approval PDF</a>` : ''}
+        </div>
+      `;
+    }
+
+    async function handleReview(decision) {
+      const requestId = document.getElementById('reviewRequestId').value;
+      const comments = document.getElementById('advisorComments').value;
+
+      if (!confirm(`Are you sure you want to ${decision} this request?`)) {
+        return;
+      }
+
+      const footer = document.querySelector('#reviewModal .modal-footer');
+      const buttons = footer ? footer.querySelectorAll('button') : [];
+      const commentsField = document.getElementById('advisorComments');
+
+      try {
+        // Prevent duplicate submissions
+        buttons.forEach(btn => btn.disabled = true);
+        if (commentsField) commentsField.disabled = true;
+
+        const newStatus = decision === 'approved' ? 'awaiting_hod' : 'rejected';
+        console.log('Advisor: Calling updateRequestStatus with status:', newStatus);
+        await DACSystem.updateRequestStatus(requestId, newStatus, comments);
+        console.log('Advisor: API call completed, reloading page...');
+        
+        // Force page reload
+        window.location.reload(true);
+      } catch (error) {
+        console.error('handleReview error:', error);
+        DACSystem.showAlert(error.message || 'Failed to update request', 'danger');
+        // Re-enable controls on error
+        buttons.forEach(btn => btn.disabled = false);
+        if (commentsField) commentsField.disabled = false;
+      }
+    }
+
+    async function quickAdvisorDecision(requestId, decision) {
+      const newStatus = decision === 'approved' ? 'awaiting_hod' : 'rejected';
+      const confirmMsg = decision === 'approved'
+        ? 'Approve and forward to HOD?'
+        : 'Reject this request and notify the student?';
+
+      if (!confirm(confirmMsg)) return;
+
+      try {
+        await DACSystem.updateRequestStatus(requestId, newStatus, '');
+        DACSystem.hideModal('reviewModal');
+        DACSystem.showAlert(
+          decision === 'approved' ? 'Approved and forwarded to HOD.' : 'Request rejected.',
+          decision === 'approved' ? 'success' : 'warning'
+        );
+        setTimeout(() => location.reload(), 500);
+      } catch (error) {
+        console.error('quickAdvisorDecision error', error);
+        DACSystem.showAlert(error.message || 'Failed to update request', 'danger');
+      }
+    }
+
+    async function viewRequest(requestId) {
+      const requests = await DACSystem.getRequests('advisor', session.id);
+      const request = requests.find(r => r.id === requestId);
+      
+      if (request) {
+        displayReviewContent(request);
+        
+        // Hide the review buttons and show only view mode
+        document.querySelector('#reviewModal .modal-footer').innerHTML = `
+          <button type="button" class="btn btn-secondary" onclick="DACSystem.hideModal('reviewModal'); resetModalFooter();">Close</button>
+        `;
+        
+        document.getElementById('advisorComments').disabled = true;
+        DACSystem.showModal('reviewModal');
+      }
+    }
+
+    function resetModalFooter() {
+      document.querySelector('#reviewModal .modal-footer').innerHTML = `
+        <button type="button" class="btn btn-secondary" onclick="DACSystem.hideModal('reviewModal')">Cancel</button>
+        <button type="button" class="btn btn-danger" onclick="handleReview('rejected')">Reject</button>
+        <button type="button" class="btn btn-success" onclick="handleReview('approved')">Approve</button>
+      `;
+      document.getElementById('advisorComments').disabled = false;
+    }
+  </script>
+</body>
+</html>

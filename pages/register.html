@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Course Add/Drop System</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="../index.html" class="logo">
+        <div class="logo-icon">
+          <img src="../assets/LogoC.JPG" alt="Shaqra University Logo">
+        </div>
+        <span>Course Add/Drop System</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="login.html">Login</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Registration Form -->
+  <div class="container">
+    <div class="card" style="max-width: 800px; margin: 2rem auto;">
+      <div class="card-header">
+        <h2>Student Registration</h2>
+        <p>Create your account to access the Course Add/Drop System</p>
+      </div>
+
+      <form id="registrationForm">
+        <!-- Personal Information -->
+        <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Personal Information</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fullName">Full Name *</label>
+            <input type="text" id="fullName" name="fullName" required placeholder="Enter your full name">
+          </div>
+          
+          <div class="form-group">
+            <label for="universityId">University ID Number *</label>
+            <input type="text" id="universityId" name="universityId" required placeholder="e.g., 441234567">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">Email Address *</label>
+            <input type="email" id="email" name="email" required placeholder="your.email@example.com">
+            <div class="form-help">Enter a valid email address</div>
+          </div>
+          
+          <div class="form-group">
+            <label for="phone">Phone Number *</label>
+            <input type="tel" id="phone" name="phone" required placeholder="+966XXXXXXXXX">
+          </div>
+        </div>
+
+        <!-- Academic Information -->
+        <h3 style="color: var(--primary-color); margin: 2rem 0 1rem;">Academic Information</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="department">Department *</label>
+            <select id="department" name="department" required>
+              <option value="">Select Department</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Information Systems">Information Systems</option>
+              <option value="Information Technology">Information Technology</option>
+              <option value="Computer Engineering">Computer Engineering</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="level">Current Level *</label>
+            <select id="level" name="level" required>
+              <option value="">Select Level</option>
+              <option value="1">Level 1</option>
+              <option value="2">Level 2</option>
+              <option value="3">Level 3</option>
+              <option value="4">Level 4</option>
+              <option value="5">Level 5</option>
+              <option value="6">Level 6</option>
+              <option value="7">Level 7</option>
+              <option value="8">Level 8</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="year">Academic Year *</label>
+            <select id="year" name="year" required>
+              <option value="">Select Year</option>
+              <option value="2024-2025">2024-2025</option>
+              <option value="2025-2026">2025-2026</option>
+              <option value="2026-2027">2026-2027</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="semester">Current Semester *</label>
+            <select id="semester" name="semester" required>
+              <option value="">Select Semester</option>
+              <option value="First">First Semester</option>
+              <option value="Second">Second Semester</option>
+              <option value="Summer">Summer Semester</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="completedHours">Completed Credit Hours *</label>
+            <input type="number" id="completedHours" name="completedHours" required min="0" max="200" placeholder="e.g., 60">
+          </div>
+          
+          <div class="form-group">
+            <label for="gpa">Current GPA *</label>
+            <input type="number" id="gpa" name="gpa" required min="0" max="5" step="0.01" placeholder="e.g., 3.75">
+            <div class="form-help">Enter your GPA out of 5.0</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="advisorId">Academic Advisor *</label>
+          <select id="advisorId" name="advisorId" required>
+            <option value="">Select your Academic Advisor</option>
+          </select>
+          <div class="form-help">Choose the advisor assigned to you</div>
+        </div>
+
+        <!-- Account Security -->
+        <h3 style="color: var(--primary-color); margin: 2rem 0 1rem;">Account Security</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="password">Password *</label>
+            <input type="password" id="password" name="password" required minlength="8" placeholder="Enter password">
+            <div class="form-help">Minimum 8 characters</div>
+          </div>
+          
+          <div class="form-group">
+            <label for="confirmPassword">Confirm Password *</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" required minlength="8" placeholder="Confirm password">
+          </div>
+        </div>
+
+        <!-- Terms and Conditions -->
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+            <input type="checkbox" id="terms" name="terms" required>
+            <span>I agree to the terms and conditions and privacy policy *</span>
+          </label>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-group">
+          <button type="submit" class="btn btn-primary btn-block">Register</button>
+        </div>
+
+        <div class="text-center mt-3">
+          <p style="color: var(--light-text);">
+            Already have an account? 
+            <a href="login.html" style="color: var(--secondary-color); font-weight: 600;">Login here</a>
+          </p>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-logo">
+        <div style="text-align: center;">
+          <div style="font-weight: var(--font-weight-bold); font-size: var(--font-size-base); text-align: center;">Shaqra University</div>
+          <div style="font-size: var(--font-size-sm); opacity: 0.9; text-align: center;">Course Add/Drop Management System</div>
+        </div>
+      </div>
+      <p style="text-align: center;">&copy; 2025 Shaqra University - College of Computing and IT. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="../script.js"></script>
+  <script>
+    // Check if already logged in
+    if (isLoggedIn()) {
+      const session = getSession();
+      window.location.href = `${session.role}-dashboard.html`;
+    }
+
+    // Load advisors on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadAdvisors();
+    });
+
+    async function loadAdvisors() {
+      try {
+        const advisors = await apiCall('getAdvisors', {});
+        const advisorSelect = document.getElementById('advisorId');
+        advisors.forEach(advisor => {
+          const option = document.createElement('option');
+          option.value = advisor.id;
+          option.textContent = advisor.name + (advisor.email ? ` (${advisor.email})` : '');
+          option.dataset.name = advisor.name;
+          option.dataset.email = advisor.email;
+          advisorSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error loading advisors:', error);
+        showAlert('Unable to load advisors. Please refresh the page.', 'danger');
+      }
+    }
+
+    // Handle form submission
+    document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      console.log('Form submitted');
+      
+      // Validate form
+      if (!validateForm('registrationForm')) {
+        showAlert('Please fill in all required fields correctly', 'danger');
+        return;
+      }
+      
+      // Get form data
+      const formData = getFormData('registrationForm');
+      
+      // Get advisor details from selected option
+      const advisorSelect = document.getElementById('advisorId');
+      const selectedOption = advisorSelect.options[advisorSelect.selectedIndex];
+      formData.advisorId = selectedOption.value;
+      formData.advisorName = selectedOption.dataset.name;
+      formData.advisorEmail = selectedOption.dataset.email;
+      
+      console.log('Form data:', formData);
+      
+      // Check password match
+      if (formData.password !== formData.confirmPassword) {
+        showAlert('Passwords do not match', 'danger');
+        return;
+      }
+      
+      // Remove confirmPassword from data
+      delete formData.confirmPassword;
+      delete formData.terms;
+      
+      // Add role and status
+      formData.role = 'student';
+      formData.status = 'active';
+      formData.registrationDate = new Date().toISOString();
+      
+      try {
+        // Send verification code instead of directly registering
+        showLoading('Sending verification code...');
+        
+        await apiCall('sendVerificationCode', formData);
+        
+        hideLoading();
+        showAlert('Verification code sent to your email!', 'success');
+        
+        // Store registration data and email in session storage
+        sessionStorage.setItem('verificationEmail', formData.email);
+        sessionStorage.setItem('registrationData', JSON.stringify(formData));
+        
+        // Redirect to verification page after 1 second
+        setTimeout(() => {
+          window.location.href = 'verify-email.html';
+        }, 1000);
+        
+      } catch (error) {
+        hideLoading();
+        console.error('Registration error:', error);
+        showAlert(error.message || 'Failed to send verification code. Please try again.', 'danger');
+      }
+    });
+
+    // Password strength indicator
+    document.getElementById('password').addEventListener('input', (e) => {
+      const password = e.target.value;
+      const strength = getPasswordStrength(password);
+      
+      // Remove existing indicator
+      const existing = document.querySelector('.password-strength');
+      if (existing) existing.remove();
+      
+      // Add new indicator
+      if (password.length > 0) {
+        const indicator = document.createElement('div');
+        indicator.className = 'password-strength';
+        indicator.style.marginTop = '0.5rem';
+        indicator.style.fontSize = '0.875rem';
+        
+        if (strength === 'weak') {
+          indicator.style.color = 'var(--danger-color)';
+          indicator.textContent = '⚠️ Weak password';
+        } else if (strength === 'medium') {
+          indicator.style.color = 'var(--warning-color)';
+          indicator.textContent = '⚠️ Medium strength';
+        } else {
+          indicator.style.color = 'var(--success-color)';
+          indicator.textContent = '✓ Strong password';
+        }
+        
+        e.target.parentElement.appendChild(indicator);
+      }
+    });
+
+    function getPasswordStrength(password) {
+      if (password.length < 8) return 'weak';
+      
+      let strength = 0;
+      if (password.length >= 12) strength++;
+      if (/[a-z]/.test(password)) strength++;
+      if (/[A-Z]/.test(password)) strength++;
+      if (/[0-9]/.test(password)) strength++;
+      if (/[^a-zA-Z0-9]/.test(password)) strength++;
+      
+      if (strength <= 2) return 'weak';
+      if (strength <= 4) return 'medium';
+      return 'strong';
+    }
+  </script>
+</body>
+</html>

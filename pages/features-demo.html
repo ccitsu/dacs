@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enhanced Features Demo - Shaqra University</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="../index.html" class="logo">
+        <div class="logo-icon">🎓</div>
+        <div class="su-logo-text">
+          Shaqra University
+          <small>CCIT</small>
+        </div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="features-demo.html">Demo</a></li>
+        <li><a href="login.html" class="btn">Login</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <h2>🚀 Enhanced Features Demo</h2>
+        <p>Test all the new functionality</p>
+      </div>
+
+      <!-- Toast Notifications Demo -->
+      <div class="mb-3 p-3 bg-light rounded">
+        <h3 class="text-primary mb-2">Toast Notifications</h3>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-success" onclick="toast.success('Success message!')">Success</button>
+          <button class="btn btn-danger" onclick="toast.error('Error message!')">Error</button>
+          <button class="btn btn-warning" onclick="toast.warning('Warning message!')">Warning</button>
+          <button class="btn btn-secondary" onclick="toast.info('Info message!')">Info</button>
+        </div>
+      </div>
+
+      <!-- Modal Demo -->
+      <div class="mb-3 p-3 bg-light rounded">
+        <h3 class="text-primary mb-2">Modal Dialogs</h3>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-primary" onclick="showSimpleModal()">Simple Modal</button>
+          <button class="btn btn-primary" onclick="showConfirmModal()">Confirmation</button>
+          <button class="btn btn-primary" onclick="showComplexModal()">Complex Modal</button>
+        </div>
+      </div>
+
+      <!-- Form Validation Demo -->
+      <div class="mb-3 p-3 bg-light rounded">
+        <h3 class="text-primary mb-2">Form Validation</h3>
+        <form id="demoForm" onsubmit="handleDemoSubmit(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Name *</label>
+              <input type="text" id="name" name="name" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="email">Email *</label>
+              <input type="email" id="email" name="email" class="form-control" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="phone">Phone *</label>
+              <input type="tel" id="phone" name="phone" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="studentId">Student ID *</label>
+              <input type="text" id="studentId" name="studentId" class="form-control" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" rows="3" class="form-control"></textarea>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('demoForm').reset()">Reset</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Data Table Demo -->
+      <div class="mb-3 p-3 bg-light rounded">
+        <h3 class="text-primary mb-2">Sortable Data Table</h3>
+        <div class="form-group">
+          <input type="text" id="tableSearch" class="form-control" placeholder="Search table..." onkeyup="handleTableSearch(event)">
+        </div>
+        <div class="table-container">
+          <table id="demoTable" class="data-table">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Progress Bar Demo -->
+      <div class="mb-3 p-3 bg-light rounded">
+        <h3 class="text-primary mb-2">Progress Bar</h3>
+        <button class="btn btn-primary" onclick="simulateProgress()">Start Progress</button>
+        <div id="progressDemo" class="progress-container mt-2" style="display: none;">
+          <div class="progress-bar" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Utility Functions Demo -->
+      <div class="mb-3 p-3 bg-light rounded">
+        <h3 class="text-primary mb-2">Utility Functions</h3>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-secondary" onclick="copyToClipboard('Copied text!')">Copy to Clipboard</button>
+          <button class="btn btn-secondary" onclick="downloadSample()">Download CSV</button>
+          <button class="btn btn-secondary" onclick="printElement('demoCard')">Print Demo Card</button>
+        </div>
+      </div>
+
+      <!-- UI Components Demo -->
+      <div class="mb-3 p-3 bg-light rounded" id="demoCard">
+        <h3 class="text-primary mb-2">UI Components</h3>
+        
+        <!-- Badges -->
+        <div class="mb-2">
+          <strong>Badges:</strong>
+          <span class="badge badge-success">Success</span>
+          <span class="badge badge-pending">Pending</span>
+          <span class="badge badge-approved">Approved</span>
+          <span class="badge badge-rejected">Rejected</span>
+        </div>
+
+        <!-- Alerts -->
+        <div class="alert alert-info mb-2">
+          <span>ℹ️</span>
+          <span>This is an info alert!</span>
+        </div>
+        <div class="alert alert-success mb-2">
+          <span>✓</span>
+          <span>This is a success alert!</span>
+        </div>
+        <div class="alert alert-danger mb-2">
+          <span>✕</span>
+          <span>This is a danger alert!</span>
+        </div>
+
+        <!-- Buttons -->
+        <div class="mb-2">
+          <strong>Buttons:</strong><br>
+          <div class="d-flex gap-2 flex-wrap mt-1">
+            <button class="btn btn-primary">Primary</button>
+            <button class="btn btn-success">Success</button>
+            <button class="btn btn-danger">Danger</button>
+            <button class="btn btn-warning">Warning</button>
+            <button class="btn btn-secondary">Secondary</button>
+            <button class="btn btn-outline">Outline</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CSS Classes Demo -->
+      <div class="mb-3 p-3 bg-light rounded">
+        <h3 class="text-primary mb-2">CSS Utility Classes</h3>
+        <div class="row">
+          <div class="col-md-6 mb-2">
+            <strong>Text Colors:</strong>
+            <p class="text-primary mb-1">Primary (University Green)</p>
+            <p class="text-success mb-1">Success</p>
+            <p class="text-danger mb-1">Danger</p>
+            <p class="text-warning mb-1">Warning</p>
+            <p class="text-muted mb-0">Muted</p>
+          </div>
+          <div class="col-md-6 mb-2">
+            <strong>Backgrounds:</strong>
+            <div class="bg-primary text-white p-2 rounded mb-1">Primary Background</div>
+            <div class="bg-light p-2 rounded mb-1">Light Background</div>
+            <div class="bg-success text-white p-2 rounded">Success Background</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../script.js"></script>
+  <script>
+    // Initialize form validator
+    const validator = new FormValidator('demoForm');
+    
+    // Add validation rules
+    validator.addRule('name', {
+      required: true,
+      minLength: 3,
+      requiredMessage: 'Name is required'
+    });
+
+    validator.addRule('email', {
+      required: true,
+      email: true,
+      requiredMessage: 'Email is required'
+    });
+
+    validator.addRule('phone', {
+      required: true,
+      pattern: /^[0-9]{10,15}$/,
+      patternMessage: 'Phone must be 10-15 digits'
+    });
+
+    validator.addRule('studentId', {
+      required: true,
+      pattern: /^[0-9]{9}$/,
+      patternMessage: 'Student ID must be 9 digits'
+    });
+
+    // Form submission handler
+    function handleDemoSubmit(event) {
+      event.preventDefault();
+      
+      const rules = {
+        name: { required: true, minLength: 3 },
+        email: { required: true, email: true },
+        phone: { required: true, pattern: /^[0-9]{10,15}$/ },
+        studentId: { required: true, pattern: /^[0-9]{9}$/ }
+      };
+
+      if (!validator.validateAll(rules)) {
+        toast.error('Please fix the errors in the form');
+        return;
+      }
+
+      const formData = new FormData(event.target);
+      const data = Object.fromEntries(formData);
+      
+      console.log('Form data:', data);
+      toast.success('Form submitted successfully!');
+      event.target.reset();
+    }
+
+    // Modal demos
+    function showSimpleModal() {
+      modalManager.create('simpleModal', 'Simple Modal', `
+        <p>This is a simple modal dialog.</p>
+        <p>You can put any content here!</p>
+      `, {
+        footer: '<button class="btn btn-primary" onclick="modalManager.close(\'simpleModal\')">Close</button>'
+      });
+    }
+
+    function showConfirmModal() {
+      modalManager.confirm(
+        'Confirmation Required',
+        'Are you sure you want to proceed with this action?',
+        () => {
+          toast.success('Action confirmed!');
+        }
+      );
+    }
+
+    function showComplexModal() {
+      modalManager.create('complexModal', 'Complex Modal', `
+        <form id="modalForm">
+          <div class="form-group">
+            <label>Enter your name:</label>
+            <input type="text" class="form-control" name="modalName" required>
+          </div>
+          <div class="form-group">
+            <label>Select option:</label>
+            <select class="form-control" name="modalOption">
+              <option value="1">Option 1</option>
+              <option value="2">Option 2</option>
+              <option value="3">Option 3</option>
+            </select>
+          </div>
+        </form>
+      `, {
+        footer: `
+          <button class="btn btn-secondary" onclick="modalManager.close('complexModal')">Cancel</button>
+          <button class="btn btn-primary" onclick="handleModalFormSubmit()">Submit</button>
+        `
+      });
+    }
+
+    function handleModalFormSubmit() {
+      const form = document.getElementById('modalForm');
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData);
+      
+      if (!data.modalName) {
+        toast.error('Name is required');
+        return;
+      }
+      
+      console.log('Modal form data:', data);
+      toast.success('Modal form submitted!');
+      modalManager.close('complexModal');
+    }
+
+    // Data table demo
+    const sampleData = [
+      { id: 1, code: 'CS101', name: 'Introduction to Programming', credits: 3, status: 'Available' },
+      { id: 2, code: 'CS102', name: 'Data Structures', credits: 3, status: 'Available' },
+      { id: 3, code: 'CS201', name: 'Algorithms', credits: 4, status: 'Full' },
+      { id: 4, code: 'CS202', name: 'Database Systems', credits: 3, status: 'Available' },
+      { id: 5, code: 'CS301', name: 'Software Engineering', credits: 3, status: 'Available' },
+      { id: 6, code: 'CS302', name: 'Web Development', credits: 3, status: 'Full' }
+    ];
+
+    const columns = [
+      { key: 'code', label: 'Code' },
+      { key: 'name', label: 'Course Name' },
+      { key: 'credits', label: 'Credits' },
+      { 
+        key: 'status', 
+        label: 'Status',
+        render: (value) => {
+          const className = value === 'Available' ? 'badge-success' : 'badge-danger';
+          return `<span class="badge ${className}">${value}</span>`;
+        }
+      },
+      {
+        key: 'action',
+        label: 'Action',
+        render: (_, row) => `
+          <button class="btn btn-sm btn-primary" onclick="handleCourseAction(${row.id})">
+            View Details
+          </button>
+        `
+      }
+    ];
+
+    const demoTable = new DataTable('demoTable', sampleData, columns);
+    demoTable.render();
+
+    function handleTableSearch(event) {
+      demoTable.filter(event.target.value);
+    }
+
+    function handleCourseAction(courseId) {
+      const course = sampleData.find(c => c.id === courseId);
+      toast.info(`Viewing details for: ${course.name}`);
+    }
+
+    // Progress bar demo
+    function simulateProgress() {
+      const container = document.getElementById('progressDemo');
+      const bar = container.querySelector('.progress-bar');
+      container.style.display = 'block';
+      
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 10;
+        bar.style.width = progress + '%';
+        
+        if (progress >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            container.style.display = 'none';
+            bar.style.width = '0%';
+            toast.success('Progress complete!');
+          }, 500);
+        }
+      }, 300);
+    }
+
+    // Download demo
+    function downloadSample() {
+      const csv = [
+        'Code,Name,Credits,Status',
+        'CS101,Introduction to Programming,3,Available',
+        'CS102,Data Structures,3,Available',
+        'CS201,Algorithms,4,Full'
+      ].join('\n');
+      
+      downloadFile(csv, 'courses.csv', 'text/csv');
+    }
+
+    // Enable auto-save for the demo form
+    enableAutoSave('demoForm', 'demo_form_data');
+
+    // Show welcome message
+    setTimeout(() => {
+      toast.info('Welcome to the Enhanced Features Demo!');
+    }, 500);
+  </script>
+</body>
+</html>

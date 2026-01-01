@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Course Add/Drop System</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="../index.html" class="logo">
+        <div class="logo-icon">
+          <img src="../assets/LogoC.JPG" alt="Shaqra University Logo">
+        </div>
+        <span>Course Add/Drop System</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="register.html">Register</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Login Form -->
+  <div class="container">
+    <div class="card" style="max-width: 500px; margin: 2rem auto;">
+      <div class="card-header text-center">
+        <h2>Login to Your Account</h2>
+        <p>Enter your credentials to access the system</p>
+      </div>
+
+      <form id="loginForm" method="post" autocomplete="off">
+        <div class="form-group">
+          <label for="role">Login As</label>
+          <select id="role" name="role" required>
+            <option value="">Select Your Role</option>
+            <option value="student">Student</option>
+            <option value="advisor">Advisor</option>
+            <option value="hod">Head of Department (HOD)</option>
+            <option value="registrar">Registrar</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required placeholder="your.email@shaqra.edu.sa">
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required placeholder="Enter your password">
+        </div>
+
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+            <input type="checkbox" id="rememberMe" name="rememberMe">
+            <span>Remember me</span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <button type="submit" class="btn btn-primary btn-block">Login</button>
+        </div>
+
+        <div class="text-center">
+          <a href="forgot-password.html" style="color: var(--secondary-color); text-decoration: none;">Forgot Password?</a>
+        </div>
+
+        <div class="text-center mt-3">
+          <p style="color: var(--light-text);">
+            Don't have an account? 
+            <a href="register.html" style="color: var(--secondary-color); font-weight: 600;">Register here</a>
+          </p>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-logo">
+        <div style="text-align: center;">
+          <div style="font-weight: var(--font-weight-bold); font-size: var(--font-size-base); text-align: center;">Shaqra University</div>
+          <div style="font-size: var(--font-size-sm); opacity: 0.9; text-align: center;">Course Add/Drop Management System</div>
+        </div>
+      </div>
+      <p style="text-align: center;">&copy; 2025 Shaqra University - College of Computing and IT. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="../script.js"></script>
+  <script>
+    // Check if already logged in
+    if (DACSystem.isLoggedIn()) {
+      const session = DACSystem.getSession();
+      const dashboards = {
+        'student': 'student-dashboard.html',
+        'advisor': 'advisor-dashboard.html',
+        'hod': 'hod-dashboard.html',
+        'registrar': 'registrar-dashboard.html'
+      };
+      if (dashboards[session.role]) {
+        window.location.href = dashboards[session.role];
+      }
+    }
+
+    // Handle form submission
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Validate form
+      if (!DACSystem.validateForm('loginForm')) {
+        DACSystem.showAlert('Please fill in all fields', 'danger');
+        return;
+      }
+      
+      const formData = DACSystem.getFormData('loginForm');
+      
+      if (!formData.role) {
+        DACSystem.showAlert('Please select your role', 'danger');
+        return;
+      }
+      
+      try {
+        // Login user with role
+        const userData = await DACSystem.loginUser(formData.email, formData.password, formData.role);
+        
+        // Check if user has multiple roles
+        if (userData.additionalRoles && userData.additionalRoles.length > 0) {
+          DACSystem.showAlert('Login successful! You have multiple roles.', 'success');
+          
+          // Show role selection modal
+          setTimeout(() => {
+            showRoleSelectionModal(userData);
+          }, 500);
+        } else {
+          DACSystem.showAlert('Login successful! Redirecting...', 'success');
+          
+          // Redirect based on role
+          const dashboards = {
+            'student': 'student-dashboard.html',
+            'advisor': 'advisor-dashboard.html',
+            'hod': 'hod-dashboard.html',
+            'registrar': 'registrar-dashboard.html'
+          };
+          
+          setTimeout(() => {
+            window.location.href = dashboards[userData.role] || 'student-dashboard.html';
+          }, 1000);
+        }
+        
+      } catch (error) {
+        DACSystem.showAlert('Invalid email or password. Please try again.', 'danger');
+      }
+    });
+    
+    function showRoleSelectionModal(userData) {
+      // Create modal for role selection
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.style.display = 'block';
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+          <div class="modal-header">
+            <h2>Select Your Role</h2>
+          </div>
+          <div style="padding: 1.5rem;">
+            <p style="margin-bottom: 1rem; color: var(--light-text);">You have access to multiple roles. Please select which dashboard you'd like to access:</p>
+            <div id="roleButtons" style="display: flex; flex-direction: column; gap: 1rem;">
+              ${userData.allRoles.map(role => `
+                <button class="btn btn-primary" onclick="selectRole('${role}')" style="padding: 1rem; font-size: 1rem; text-transform: capitalize;">
+                  ${getRoleIcon(role)} ${getRoleName(role)}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      
+      // Store userData in sessionStorage for role selection
+      sessionStorage.setItem('pendingUserData', JSON.stringify(userData));
+    }
+    
+    function selectRole(selectedRole) {
+      const userData = JSON.parse(sessionStorage.getItem('pendingUserData'));
+      userData.role = selectedRole;
+      userData.primaryRole = selectedRole;
+      
+      // Save session with selected role
+      DACSystem.saveSession(userData);
+      sessionStorage.removeItem('pendingUserData');
+      
+      const dashboards = {
+        'student': 'student-dashboard.html',
+        'advisor': 'advisor-dashboard.html',
+        'hod': 'hod-dashboard.html',
+        'registrar': 'registrar-dashboard.html'
+      };
+      
+      window.location.href = dashboards[selectedRole] || 'student-dashboard.html';
+    }
+    
+    function getRoleIcon(role) {
+      const icons = {
+        'student': '🎓',
+        'advisor': '👨‍🏫',
+        'hod': '👔',
+        'registrar': '📋'
+      };
+      return icons[role] || '👤';
+    }
+    
+    function getRoleName(role) {
+      const names = {
+        'student': 'Student',
+        'advisor': 'Advisor',
+        'hod': 'Head of Department',
+        'registrar': 'Registrar'
+      };
+      return names[role] || role;
+    }
+
+    // Toggle password visibility
+    const passwordInput = document.getElementById('password');
+    const toggleBtn = document.createElement('button');
+    toggleBtn.type = 'button';
+    toggleBtn.textContent = '👁️';
+    toggleBtn.style.cssText = 'position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.2rem;';
+    
+    passwordInput.parentElement.style.position = 'relative';
+    passwordInput.parentElement.appendChild(toggleBtn);
+    
+    toggleBtn.addEventListener('click', () => {
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleBtn.textContent = '🙈';
+      } else {
+        passwordInput.type = 'password';
+        toggleBtn.textContent = '👁️';
+      }
+    });
+  </script>
+</body>
+</html>

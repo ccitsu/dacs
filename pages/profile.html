@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile - Course Add/Drop System</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body class="profile-page">
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="../index.html" class="logo">
+        <div class="logo-icon">
+          <img src="../assets/LogoC.JPG" alt="Shaqra University Logo">
+        </div>
+        <span>Course Add/Drop System</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#" id="dashboardLink">Dashboard</a></li>
+        <li><a href="profile.html">Profile</a></li>
+        <li><a href="#" id="logoutBtn">Logout</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="dashboard single-column">
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+          <h1>My Profile</h1>
+          <p>View and update your profile information</p>
+          <div class="user-chips">
+            <span class="chip chip-strong" id="userRole">Role</span>
+            <span class="chip chip-ghost" id="userDept">Department</span>
+          </div>
+        </div>
+
+        <div class="action-bar">
+          <button class="btn btn-secondary" id="dashboardLink">📊 Dashboard</button>
+          <button class="btn btn-secondary" id="changePasswordLink">🔒 Change Password</button>
+        </div>
+
+        <!-- Profile Information -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Profile Information</h2>
+          </div>
+
+          <form id="profileForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" name="fullName" readonly>
+              </div>
+              
+              <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" readonly>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="phone">Phone Number *</label>
+                <input type="tel" id="phone" name="phone" placeholder="+966XXXXXXXXX">
+              </div>
+              
+              <div class="form-group" id="universityIdGroup">
+                <label for="universityId">University ID</label>
+                <input type="text" id="universityId" name="universityId" readonly>
+              </div>
+            </div>
+
+            <div class="form-row" id="studentFields">
+              <div class="form-group">
+                <label for="completedHours">Completed Credit Hours *</label>
+                <input type="number" id="completedHours" name="completedHours" min="0" max="200">
+              </div>
+              
+              <div class="form-group">
+                <label for="gpa">Current GPA *</label>
+                <input type="number" id="gpa" name="gpa" min="0" max="5" step="0.01">
+              </div>
+            </div>
+
+            <div class="form-row" id="academicInfo">
+              <div class="form-group">
+                <label for="department">Department</label>
+                <input type="text" id="department" name="department" readonly>
+              </div>
+              
+              <div class="form-group">
+                <label for="level">Level</label>
+                <input type="text" id="level" name="level" readonly>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <button type="submit" class="btn btn-primary">Update Profile</button>
+              <button type="button" class="btn btn-secondary" onclick="loadProfile()">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Change Password Section -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Change Password</h2>
+          </div>
+
+          <form id="passwordForm">
+            <div class="form-group">
+              <label for="currentPassword">Current Password *</label>
+              <input type="password" id="currentPassword" name="currentPassword" required>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newPassword">New Password *</label>
+                <input type="password" id="newPassword" name="newPassword" required minlength="8">
+                <div class="form-help">Minimum 8 characters</div>
+              </div>
+              
+              <div class="form-group">
+                <label for="confirmNewPassword">Confirm New Password *</label>
+                <input type="password" id="confirmNewPassword" name="confirmNewPassword" required minlength="8">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <button type="submit" class="btn btn-warning">Change Password</button>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../script.js"></script>
+  <script>
+    // Check authentication
+    if (!DACSystem.requireAuth()) {
+      window.location.href = 'login.html';
+    }
+
+    const session = DACSystem.getSession();
+
+    // Set up navigation links
+    const dashboardLinks = {
+      'student': 'student-dashboard.html',
+      'advisor': 'advisor-dashboard.html',
+      'hod': 'hod-dashboard.html',
+      'registrar': 'registrar-dashboard.html'
+    };
+
+    const dashboardBtn = document.getElementById('dashboardLink');
+    if (dashboardBtn) {
+      dashboardBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = dashboardLinks[session.role];
+      });
+    }
+
+    // Initialize profile
+    document.addEventListener('DOMContentLoaded', () => {
+      loadUserInfo();
+      loadProfile();
+      setupEventListeners();
+    });
+
+    function loadUserInfo() {
+      const roleEl = document.getElementById('userRole');
+      if (roleEl) roleEl.textContent = session.role.replace('_', ' ').toUpperCase();
+      const deptEl = document.getElementById('userDept');
+      if (deptEl) deptEl.textContent = session.department || '—';
+    }
+
+    function loadProfile() {
+      // Populate form with session data
+      document.getElementById('fullName').value = session.fullName || '';
+      document.getElementById('email').value = session.email || '';
+      document.getElementById('phone').value = session.phone || '';
+      document.getElementById('department').value = session.department || '';
+      
+      // Show/hide fields based on role
+      if (session.role === 'student') {
+        // Show student-specific fields
+        document.getElementById('studentFields').style.display = '';
+        document.getElementById('universityIdGroup').style.display = '';
+        document.getElementById('academicInfo').style.display = '';
+        
+        document.getElementById('universityId').value = session.universityId || '';
+        document.getElementById('completedHours').value = session.completedHours || '';
+        document.getElementById('gpa').value = session.gpa || '';
+        document.getElementById('level').value = session.level || '';
+      } else {
+        // Hide student-specific fields for staff (advisor, hod, registrar)
+        document.getElementById('studentFields').style.display = 'none';
+        document.getElementById('universityIdGroup').style.display = 'none';
+        document.getElementById('academicInfo').style.display = 'none';
+      }
+    }
+
+    function setupEventListeners() {
+      // Profile form submission
+      document.getElementById('profileForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.querySelector('#profileForm button[type="submit"]');
+        if (!DACSystem.validateForm('profileForm')) {
+          DACSystem.showAlert('Please fill in all required fields correctly', 'danger');
+          return;
+        }
+
+        const formData = DACSystem.getFormData('profileForm');
+        const originalText = submitBtn ? submitBtn.textContent : '';
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Updating...'; }
+        try {
+          await DACSystem.updateProfile(formData);
+          DACSystem.showAlert('Profile updated successfully!', 'success');
+        } catch (error) {
+          DACSystem.showAlert(error.message || 'Failed to update profile', 'danger');
+        } finally {
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = originalText; }
+        }
+      });
+
+      // Password form submission
+      document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = DACSystem.getFormData('passwordForm');
+        
+        if (formData.newPassword !== formData.confirmNewPassword) {
+          DACSystem.showAlert('New passwords do not match', 'danger');
+          return;
+        }
+        
+        try {
+          await DACSystem.changePassword(formData.currentPassword, formData.newPassword);
+          DACSystem.showAlert('Password changed successfully!', 'success');
+          DACSystem.resetForm('passwordForm');
+        } catch (error) {
+          DACSystem.showAlert(error.message || 'Failed to change password', 'danger');
+        }
+      });
+
+      // Logout button
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          DACSystem.logout();
+        });
+      }
+
+      // Change password button (triggers scroll to password form)
+      const changePwdLink = document.getElementById('changePasswordLink');
+      if (changePwdLink) {
+        changePwdLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          document.querySelector('#passwordForm').scrollIntoView({ behavior: 'smooth' });
+        });
+      }
+    }
+
+    // Password strength indicator
+    document.getElementById('newPassword').addEventListener('input', (e) => {
+      const password = e.target.value;
+      const strength = getPasswordStrength(password);
+      
+      const existing = document.querySelector('.password-strength');
+      if (existing) existing.remove();
+      
+      if (password.length > 0) {
+        const indicator = document.createElement('div');
+        indicator.className = 'password-strength';
+        indicator.style.marginTop = '0.5rem';
+        indicator.style.fontSize = '0.875rem';
+        
+        if (strength === 'weak') {
+          indicator.style.color = 'var(--danger-color)';
+          indicator.textContent = '⚠️ Weak password';
+        } else if (strength === 'medium') {
+          indicator.style.color = 'var(--warning-color)';
+          indicator.textContent = '⚠️ Medium strength';
+        } else {
+          indicator.style.color = 'var(--success-color)';
+          indicator.textContent = '✓ Strong password';
+        }
+        
+        e.target.parentElement.appendChild(indicator);
+      }
+    });
+
+    function getPasswordStrength(password) {
+      if (password.length < 8) return 'weak';
+      
+      let strength = 0;
+      if (password.length >= 12) strength++;
+      if (/[a-z]/.test(password)) strength++;
+      if (/[A-Z]/.test(password)) strength++;
+      if (/[0-9]/.test(password)) strength++;
+      if (/[^a-zA-Z0-9]/.test(password)) strength++;
+      
+      if (strength <= 2) return 'weak';
+      if (strength <= 4) return 'medium';
+      return 'strong';
+    }
+  </script>
+</body>
+</html>

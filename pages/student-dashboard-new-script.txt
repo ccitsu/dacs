@@ -1,0 +1,462 @@
+Replace the entire <script> section (from line ~215 to ~526) with this new code that supports multiple courses:
+
+<script>
+    // Check authentication
+    if (!requireAuth()) {
+      window.location.href = 'login.html';
+    }
+
+    const session = getSession();
+    if (session.role !== 'student') {
+      window.location.href = `${session.role}-dashboard.html`;
+    }
+
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', async () => {
+      loadUserInfo();
+      await loadCourses();
+      await loadRequests();
+      setupEventListeners();
+    });
+
+    let allCourses = []; // Store all course sections
+    let courseCounter = 0; // Counter for unique IDs
+    let dropCourseCounter = 0; // Counter for drop courses
+
+    function loadUserInfo() {
+      document.getElementById('studentName').textContent = session.fullName;
+      document.querySelector('.user-name').textContent = session.fullName;
+      const initials = session.fullName.split(' ').map(n => n[0]).join('').substring(0, 2);
+      document.querySelector('.user-avatar').textContent = initials;
+    }
+
+    async function loadCourses() {
+      try {
+        allCourses = await getCourses();
+      } catch (error) {
+        console.error('Error loading courses:', error);
+      }
+    }
+
+    async function loadRequests() {
+      try {
+        const requests = await getRequests('student', session.id);
+        displayRequests(requests);
+        updateStatistics(requests);
+      } catch (error) {
+        console.error('Error loading requests:', error);
+        document.getElementById('requestsTableBody').innerHTML = 
+          '<tr><td colspan="6" class="text-center">Error loading requests</td></tr>';
+      }
+    }
+
+    function displayRequests(requests) {
+      const tbody = document.getElementById('requestsTableBody');
+      
+      if (requests.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">No requests found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = requests.map(req => `
+        <tr>
+          <td><strong>#${req.id}</strong></td>
+          <td><span class="badge badge-${req.type === 'add' ? 'success' : 'warning'}">${req.type.toUpperCase()}</span></td>
+          <td>${req.courseCode || 'Multiple'}</td>
+          <td>${getStatusBadge(req.status)}</td>
+          <td>${formatDate(req.submittedDate)}</td>
+          <td>
+            <button class="btn btn-secondary" onclick="viewRequestDetails('${req.id}')" style="padding: 0.4rem 1rem;">View</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function updateStatistics(requests) {
+      document.getElementById('totalRequests').textContent = requests.length;
+      document.getElementById('pendingRequests').textContent = 
+        requests.filter(r => r.status.includes('awaiting') || r.status === 'pending').length;
+      document.getElementById('approvedRequests').textContent = 
+        requests.filter(r => r.status === 'completed' || r.status === 'approved').length;
+      document.getElementById('rejectedRequests').textContent = 
+        requests.filter(r => r.status === 'rejected').length;
+    }
+
+    function setupEventListeners() {
+      // New request buttons
+      document.getElementById('newRequestBtn').addEventListener('click', showNewRequestModal);
+      document.getElementById('createRequestBtn').addEventListener('click', showNewRequestModal);
+      
+      // View all button
+      document.getElementById('viewAllBtn').addEventListener('click', () => {
+        loadRequests();
+      });
+
+      // Request type change
+      document.getElementById('requestType').addEventListener('change', handleRequestTypeChange);
+
+      // Form submission
+      document.getElementById('newRequestForm').addEventListener('submit', handleFormSubmit);
+
+      // Logout buttons
+      document.getElementById('logoutBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        logout();
+      });
+      document.getElementById('sidebarLogout').addEventListener('click', (e) => {
+        e.preventDefault();
+        logout();
+      });
+    }
+
+    function showNewRequestModal() {
+      showModal('newRequestModal');
+    }
+
+    function handleRequestTypeChange(e) {
+      const type = e.target.value;
+      const addSection = document.getElementById('addCourseSection');
+      const dropSection = document.getElementById('dropCourseSection');
+
+      addSection.classList.add('hidden');
+      dropSection.classList.add('hidden');
+      
+      // Clear previous entries
+      document.getElementById('coursesToAddList').innerHTML = '';
+      document.getElementById('coursesToDropList').innerHTML = '';
+      courseCounter = 0;
+      dropCourseCounter = 0;
+
+      if (type === 'add' || type === 'both') {
+        addSection.classList.remove('hidden');
+        addCourseEntry(); // Add first course entry
+      }
+      if (type === 'drop' || type === 'both') {
+        dropSection.classList.remove('hidden');
+        addDropCourseEntry(); // Add first drop entry
+      }
+    }
+
+    function addCourseEntry() {
+      const id = courseCounter++;
+      const container = document.getElementById('coursesToAddList');
+      
+      const entryDiv = document.createElement('div');
+      entryDiv.className = 'card';
+      entryDiv.style.cssText = 'margin-bottom: 1rem; padding: 1rem; background: var(--light-bg); position: relative;';
+      entryDiv.id = `courseEntry${id}`;
+      
+      entryDiv.innerHTML = `
+        ${id > 0 ? `<button type="button" class="btn btn-danger" onclick="removeCourseEntry(${id})" style="position: absolute; top: 0.5rem; right: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.875rem;">✕ Remove</button>` : ''}
+        <h4 style="margin-bottom: 1rem;">Course ${id + 1}</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="courseName${id}">Select Course *</label>
+            <select id="courseName${id}" class="courseName" data-id="${id}">
+              <option value="">Select a course</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="activityType${id}">Activity Type *</label>
+            <select id="activityType${id}" class="activityType" data-id="${id}">
+              <option value="">Select course first</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="section${id}">Select Section *</label>
+          <select id="section${id}" class="section" data-id="${id}">
+            <option value="">Select activity type first</option>
+          </select>
+        </div>
+
+        <div id="courseDetails${id}" class="course-details-display hidden" style="padding: 1rem; background: white; border-radius: 0.5rem; margin-top: 1rem;">
+          <h5 style="margin-bottom: 0.5rem;">Selected Details</h5>
+          <div id="detailsContent${id}"></div>
+        </div>
+      `;
+      
+      container.appendChild(entryDiv);
+      
+      // Populate course names
+      populateCourseNamesForEntry(id);
+      
+      // Add event listeners
+      document.getElementById(`courseName${id}`).addEventListener('change', (e) => handleCourseNameChange(id, e));
+      document.getElementById(`activityType${id}`).addEventListener('change', (e) => handleActivityTypeChange(id, e));
+      document.getElementById(`section${id}`).addEventListener('change', (e) => handleSectionChange(id, e));
+    }
+
+    function removeCourseEntry(id) {
+      const entry = document.getElementById(`courseEntry${id}`);
+      if (entry) entry.remove();
+    }
+
+    function populateCourseNamesForEntry(id) {
+      // Get unique course names
+      const uniqueCourses = {};
+      allCourses.forEach(course => {
+        if (!uniqueCourses[course.name]) {
+          uniqueCourses[course.name] = {
+            code: course.code,
+            name: course.name
+          };
+        }
+      });
+
+      const select = document.getElementById(`courseName${id}`);
+      select.innerHTML = '<option value="">Select a course</option>';
+      
+      Object.values(uniqueCourses).forEach(course => {
+        const option = document.createElement('option');
+        option.value = course.name;
+        option.textContent = `${course.code} - ${course.name}`;
+        select.appendChild(option);
+      });
+    }
+
+    function handleCourseNameChange(id, e) {
+      const courseName = e.target.value;
+      document.getElementById(`courseDetails${id}`).classList.add('hidden');
+      
+      if (!courseName) {
+        document.getElementById(`activityType${id}`).innerHTML = '<option value="">Select course first</option>';
+        document.getElementById(`section${id}`).innerHTML = '<option value="">Select activity type first</option>';
+        return;
+      }
+
+      // Get unique activity types for this course
+      const activityTypes = new Set();
+      allCourses.forEach(course => {
+        if (course.name === courseName) {
+          activityTypes.add(course.activityType);
+        }
+      });
+
+      const activitySelect = document.getElementById(`activityType${id}`);
+      activitySelect.innerHTML = '<option value="">Select activity type</option>';
+      
+      activityTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type;
+        option.textContent = type;
+        activitySelect.appendChild(option);
+      });
+
+      // Reset section dropdown
+      document.getElementById(`section${id}`).innerHTML = '<option value="">Select activity type first</option>';
+    }
+
+    function handleActivityTypeChange(id, e) {
+      const courseName = document.getElementById(`courseName${id}`).value;
+      const activityType = e.target.value;
+      document.getElementById(`courseDetails${id}`).classList.add('hidden');
+      
+      if (!activityType) {
+        document.getElementById(`section${id}`).innerHTML = '<option value="">Select activity type first</option>';
+        return;
+      }
+
+      // Get sections for this course and activity type
+      const sections = allCourses.filter(course => 
+        course.name === courseName && course.activityType === activityType
+      );
+
+      const sectionSelect = document.getElementById(`section${id}`);
+      sectionSelect.innerHTML = '<option value="">Select section</option>';
+      
+      sections.forEach(course => {
+        const option = document.createElement('option');
+        option.value = JSON.stringify(course);
+        option.textContent = `Section ${course.section} - ${course.day} ${course.time}`;
+        sectionSelect.appendChild(option);
+      });
+    }
+
+    function handleSectionChange(id, e) {
+      if (!e.target.value) {
+        document.getElementById(`courseDetails${id}`).classList.add('hidden');
+        return;
+      }
+
+      const course = JSON.parse(e.target.value);
+      displayCourseDetails(id, course);
+    }
+
+    function displayCourseDetails(id, course) {
+      const detailsDiv = document.getElementById(`detailsContent${id}`);
+      detailsDiv.innerHTML = `
+        <div class="course-detail"><strong>Course Code:</strong> ${course.code}</div>
+        <div class="course-detail"><strong>Course Name:</strong> ${course.name}</div>
+        <div class="course-detail"><strong>Activity Type:</strong> ${course.activityType}</div>
+        <div class="course-detail"><strong>Credit Hours:</strong> ${course.creditHours}</div>
+        <div class="course-detail"><strong>Section:</strong> ${course.section}</div>
+        <div class="course-detail"><strong>Day:</strong> ${course.day}</div>
+        <div class="course-detail"><strong>Time:</strong> ${course.time}</div>
+      `;
+      document.getElementById(`courseDetails${id}`).classList.remove('hidden');
+    }
+
+    function addDropCourseEntry() {
+      const id = dropCourseCounter++;
+      const container = document.getElementById('coursesToDropList');
+      
+      const entryDiv = document.createElement('div');
+      entryDiv.className = 'card';
+      entryDiv.style.cssText = 'margin-bottom: 1rem; padding: 1rem; background: var(--light-bg); position: relative;';
+      entryDiv.id = `dropEntry${id}`;
+      
+      entryDiv.innerHTML = `
+        ${id > 0 ? `<button type="button" class="btn btn-danger" onclick="removeDropEntry(${id})" style="position: absolute; top: 0.5rem; right: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.875rem;">✕ Remove</button>` : ''}
+        <h4 style="margin-bottom: 1rem;">Drop Course ${id + 1}</h4>
+        <div class="form-group">
+          <label for="dropCourseName${id}">Course to Drop *</label>
+          <input type="text" id="dropCourseName${id}" class="dropCourseName" placeholder="Enter course code or name (e.g., CS101)" required>
+          <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+            Enter the course code or name you want to drop from your current schedule
+          </small>
+        </div>
+      `;
+      
+      container.appendChild(entryDiv);
+    }
+
+    function removeDropEntry(id) {
+      const entry = document.getElementById(`dropEntry${id}`);
+      if (entry) entry.remove();
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+
+      const requestType = document.getElementById('requestType').value;
+      if (!requestType) {
+        showAlert('Please select a request type', 'danger');
+        return;
+      }
+
+      // Collect courses to add
+      const coursesToAdd = [];
+      if (requestType === 'add' || requestType === 'both') {
+        const sectionSelects = document.querySelectorAll('.section');
+        sectionSelects.forEach((select, index) => {
+          if (select.value) {
+            const course = JSON.parse(select.value);
+            coursesToAdd.push(course);
+          }
+        });
+
+        if (coursesToAdd.length === 0) {
+          showAlert('Please select at least one course to add', 'danger');
+          return;
+        }
+      }
+
+      // Collect courses to drop
+      const coursesToDrop = [];
+      if (requestType === 'drop' || requestType === 'both') {
+        const dropInputs = document.querySelectorAll('.dropCourseName');
+        dropInputs.forEach(input => {
+          if (input.value.trim()) {
+            coursesToDrop.push(input.value.trim());
+          }
+        });
+
+        if (coursesToDrop.length === 0) {
+          showAlert('Please enter at least one course to drop', 'danger');
+          return;
+        }
+      }
+
+      const reason = document.getElementById('reason').value;
+      if (!reason) {
+        showAlert('Please provide a reason for your request', 'danger');
+        return;
+      }
+
+      const formData = {
+        requestType: requestType,
+        coursesToAdd: coursesToAdd,
+        coursesToDrop: coursesToDrop,
+        reason: reason
+      };
+
+      try {
+        await submitRequest(formData);
+        showAlert('Request submitted successfully! Your advisor will be notified.', 'success');
+        hideModal('newRequestModal');
+        document.getElementById('newRequestForm').reset();
+        document.getElementById('coursesToAddList').innerHTML = '';
+        document.getElementById('coursesToDropList').innerHTML = '';
+        await loadRequests();
+      } catch (error) {
+        showAlert(error.message || 'Failed to submit request', 'danger');
+      }
+    }
+
+    async function viewRequestDetails(requestId) {
+      try {
+        const requests = await getRequests('student', session.id);
+        const request = requests.find(r => r.id === requestId);
+        
+        if (!request) {
+          showAlert('Request not found', 'danger');
+          return;
+        }
+
+        displayRequestDetails(request);
+        showModal('requestDetailsModal');
+      } catch (error) {
+        showAlert('Error loading request details', 'danger');
+      }
+    }
+
+    function displayRequestDetails(request) {
+      const content = document.getElementById('requestDetailsContent');
+      
+      let approvalTimeline = '';
+      if (request.approvals) {
+        approvalTimeline = '<h3 style="margin-top: 1.5rem;">Approval Timeline</h3><div class="timeline">';
+        
+        request.approvals.forEach(approval => {
+          const isCompleted = approval.status === 'approved';
+          approvalTimeline += `
+            <div class="timeline-item ${isCompleted ? 'completed' : ''}">
+              <div class="timeline-content">
+                <div class="timeline-date">${formatDate(approval.date)}</div>
+                <strong>${approval.role}</strong>: ${approval.status}
+                ${approval.comments ? `<p>${approval.comments}</p>` : ''}
+              </div>
+            </div>
+          `;
+        });
+        
+        approvalTimeline += '</div>';
+      }
+
+      content.innerHTML = `
+        <div class="course-card">
+          <h3>Request Information</h3>
+          <div class="course-details">
+            <div class="course-detail"><strong>Request ID:</strong> #${request.id}</div>
+            <div class="course-detail"><strong>Type:</strong> ${request.type.toUpperCase()}</div>
+            <div class="course-detail"><strong>Status:</strong> ${getStatusBadge(request.status)}</div>
+            <div class="course-detail"><strong>Submitted:</strong> ${formatDate(request.submittedDate)}</div>
+          </div>
+
+          <h4 style="margin-top: 1rem;">Course Details</h4>
+          <div class="course-details">
+            <div class="course-detail"><strong>Course:</strong> ${request.courseCode} - ${request.courseName}</div>
+            ${request.sectionToAdd ? `<div class="course-detail"><strong>Section:</strong> ${request.sectionToAdd}</div>` : ''}
+          </div>
+
+          <h4 style="margin-top: 1rem;">Reason</h4>
+          <p>${request.reason}</p>
+
+          ${approvalTimeline}
+        </div>
+      `;
+    }
+  </script>

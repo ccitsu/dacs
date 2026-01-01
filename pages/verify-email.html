@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Email - Course Add/Drop System</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .verification-container {
+      max-width: 500px;
+      margin: 50px auto;
+      padding: 40px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .verification-icon {
+      text-align: center;
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+    .code-input {
+      font-size: 32px;
+      text-align: center;
+      letter-spacing: 10px;
+      font-weight: bold;
+      padding: 15px;
+      border: 3px dashed var(--primary-color);
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+    }
+    .timer {
+      text-align: center;
+      color: var(--warning-color);
+      font-size: 18px;
+      margin: 20px 0;
+      font-weight: bold;
+    }
+    .resend-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .resend-link button {
+      background: none;
+      border: none;
+      color: var(--primary-color);
+      text-decoration: underline;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .resend-link button:disabled {
+      color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="../index.html" class="logo">
+        <div class="logo-icon">📚</div>
+        <span>Course Add/Drop System</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="verification-container">
+      <div class="verification-icon">📧</div>
+      <h2 style="text-align: center; color: var(--primary-color);">Verify Your Email</h2>
+      <p style="text-align: center; color: #666;">
+        We've sent a 6-digit verification code to<br>
+        <strong id="displayEmail"></strong>
+      </p>
+
+      <form id="verificationForm">
+        <div class="form-group">
+          <label for="verificationCode">Enter Verification Code</label>
+          <input 
+            type="text" 
+            id="verificationCode" 
+            name="code" 
+            class="code-input" 
+            maxlength="6" 
+            pattern="[0-9]{6}"
+            placeholder="000000"
+            required
+            autocomplete="off">
+        </div>
+
+        <div class="timer" id="timer">
+          Code expires in: <span id="countdown">15:00</span>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+          Verify Email
+        </button>
+      </form>
+
+      <div class="resend-link">
+        <p>Didn't receive the code?</p>
+        <button id="resendBtn" onclick="resendCode()">Resend Code</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../script.js"></script>
+  <script>
+    let countdownTimer;
+    let resendTimer;
+    let timeRemaining = 900; // 15 minutes in seconds
+    let canResend = false;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Get email from session storage
+      const registrationEmail = sessionStorage.getItem('verificationEmail');
+      if (!registrationEmail) {
+        DACSystem.showAlert('No verification pending. Please register first.', 'warning');
+        setTimeout(() => window.location.href = 'register.html', 2000);
+        return;
+      }
+
+      document.getElementById('displayEmail').textContent = registrationEmail;
+      
+      // Start countdown
+      startCountdown();
+      
+      // Enable resend after 60 seconds
+      setTimeout(() => {
+        canResend = true;
+        document.getElementById('resendBtn').disabled = false;
+      }, 60000);
+
+      // Handle form submission
+      document.getElementById('verificationForm').addEventListener('submit', handleVerification);
+      
+      // Auto-focus on code input
+      document.getElementById('verificationCode').focus();
+      
+      // Format code input
+      document.getElementById('verificationCode').addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+      });
+    });
+
+    function startCountdown() {
+      const countdownEl = document.getElementById('countdown');
+      
+      countdownTimer = setInterval(() => {
+        timeRemaining--;
+        
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
+        countdownEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeRemaining <= 0) {
+          clearInterval(countdownTimer);
+          DACSystem.showAlert('Verification code expired. Please request a new code.', 'warning');
+          document.getElementById('verificationForm').querySelector('button[type="submit"]').disabled = true;
+        }
+        
+        // Change color when less than 2 minutes remain
+        if (timeRemaining <= 120) {
+          document.getElementById('timer').style.color = 'var(--danger-color)';
+        }
+      }, 1000);
+    }
+
+    async function handleVerification(e) {
+      e.preventDefault();
+      
+      const code = document.getElementById('verificationCode').value.trim();
+      const email = sessionStorage.getItem('verificationEmail');
+      
+      if (code.length !== 6) {
+        DACSystem.showAlert('Please enter a 6-digit code', 'warning');
+        return;
+      }
+      
+      if (!code.match(/^[0-9]{6}$/)) {
+        DACSystem.showAlert('Code must be 6 digits', 'warning');
+        return;
+      }
+
+      try {
+        DACSystem.showLoading('Verifying code...');
+        const result = await DACSystem.apiCall('verifyCode', { email: email.trim(), code: code.trim() });
+        DACSystem.hideLoading();
+        
+        DACSystem.showAlert('Email verified successfully! Redirecting to login...', 'success');
+        
+        // Clear session storage
+        sessionStorage.removeItem('verificationEmail');
+        sessionStorage.removeItem('registrationData');
+        
+        // Clear countdown
+        clearInterval(countdownTimer);
+        
+        // Redirect to login
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 2000);
+        
+      } catch (error) {
+        DACSystem.hideLoading();
+        DACSystem.showAlert(error.message || 'Invalid verification code', 'danger');
+        document.getElementById('verificationCode').value = '';
+        document.getElementById('verificationCode').focus();
+      }
+    }
+
+    async function resendCode() {
+      if (!canResend) {
+        DACSystem.showAlert('Please wait before requesting a new code', 'warning');
+        return;
+      }
+
+      const email = sessionStorage.getItem('verificationEmail');
+      const registrationData = JSON.parse(sessionStorage.getItem('registrationData') || '{}');
+      
+      if (!registrationData.email) {
+        DACSystem.showAlert('Registration data not found. Please register again.', 'danger');
+        setTimeout(() => window.location.href = 'register.html', 2000);
+        return;
+      }
+
+      try {
+        document.getElementById('resendBtn').disabled = true;
+        await DACSystem.apiCall('sendVerificationCode', registrationData);
+        
+        DACSystem.showAlert('A new verification code has been sent to your email', 'success');
+        
+        // Reset countdown
+        clearInterval(countdownTimer);
+        timeRemaining = 900;
+        document.getElementById('timer').style.color = 'var(--warning-color)';
+        startCountdown();
+        
+        // Re-enable form submit button
+        document.getElementById('verificationForm').querySelector('button[type="submit"]').disabled = false;
+        
+        // Disable resend for 60 seconds
+        canResend = false;
+        setTimeout(() => {
+          canResend = true;
+          document.getElementById('resendBtn').disabled = false;
+        }, 60000);
+        
+      } catch (error) {
+        DACSystem.showAlert(error.message || 'Failed to resend code', 'danger');
+        document.getElementById('resendBtn').disabled = false;
+      }
+    }
+
+    // Clear timer on page unload
+    window.addEventListener('beforeunload', () => {
+      if (countdownTimer) clearInterval(countdownTimer);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registrar Dashboard - Course Add/Drop System</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body class="registrar-dashboard-page">
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="../index.html" class="logo">
+        <div class="logo-icon">
+          <img src="../assets/LogoC.JPG" alt="Shaqra University Logo">
+        </div>
+        <span>Course Add/Drop System</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="registrar-dashboard.html">Dashboard</a></li>
+        <li><a href="profile.html">Profile</a></li>
+        <li><a href="#" id="logoutBtn">Logout</a></li>
+      </ul>
+      <button class="hamburger" aria-label="Toggle navigation menu">☰</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="dashboard single-column">
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+          <h1>Registrar Dashboard</h1>
+          <p>Final processing and registration of approved requests</p>
+          <div class="user-chips">
+            <span class="chip chip-strong" id="userRole">Registrar</span>
+            <span class="chip chip-ghost" id="userDept">Department</span>
+          </div>
+        </div>
+
+        <div class="action-bar">
+          <button class="btn btn-secondary" onclick="downloadRequestsCSV()">⬇️ Download CSV</button>
+          <button class="btn btn-secondary" onclick="loadRequests()">🔄 Refresh</button>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="dashboard-stats">
+          <div class="stat-card warning">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-value" id="awaitingCount">0</div>
+            <div class="stat-label">Awaiting Processing</div>
+          </div>
+          <div class="stat-card success">
+            <div class="stat-icon">✓</div>
+            <div class="stat-value" id="completedCount">0</div>
+            <div class="stat-label">Completed</div>
+          </div>
+          <div class="stat-card danger">
+            <div class="stat-icon">✗</div>
+            <div class="stat-value" id="rejectedCount">0</div>
+            <div class="stat-label">Rejected</div>
+          </div>
+          <div class="stat-card primary">
+            <div class="stat-icon">📋</div>
+            <div class="stat-value" id="totalCount">0</div>
+            <div class="stat-label">Total Requests</div>
+          </div>
+        </div>
+
+        <!-- Requests Table -->
+        <div class="card">
+          <div class="card-header flex-between">
+            <div>
+              <h2>Registration Requests</h2>
+              <p>Process fully approved requests and generate final documents</p>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-secondary" onclick="downloadRequestsCSV()">⬇️ Download CSV</button>
+              <select id="filterStatus" class="form-group" style="margin: 0; padding: 0.6rem; border: 2px solid var(--border-color); border-radius: 8px;">
+                <option value="all">All Requests</option>
+                <option value="awaiting_registrar" selected>Awaiting Processing</option>
+                <option value="completed">Completed</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <button class="btn btn-secondary" onclick="loadRequests()">🔄 Refresh</button>
+            </div>
+          </div>
+          <div class="table-container">
+            <table id="requestsTable">
+              <thead>
+                <tr>
+                  <th>Request ID</th>
+                  <th>Student</th>
+                  <th>Type</th>
+                  <th>Course</th>
+                  <th>Status</th>
+                  <th>Submitted</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="requestsTableBody">
+                <tr>
+                  <td colspan="7" class="text-center">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Process Request Modal -->
+  <div id="processModal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+      <div class="modal-header">
+        <h2>Process Registration Request</h2>
+        <button class="modal-close" onclick="DACSystem.hideModal('processModal')">&times;</button>
+      </div>
+      
+      <div id="processContent"></div>
+
+      <form id="processForm">
+        <input type="hidden" id="processRequestId" name="requestId">
+        
+        <div class="alert alert-info">
+          <span>ℹ️</span>
+          <span>Approving this request will generate a final PDF document and send it to all stakeholders via email.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="registrarComments">Final Comments (Optional)</label>
+          <textarea id="registrarComments" name="comments" placeholder="Add any final comments or notes"></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="DACSystem.hideModal('processModal')">Cancel</button>
+          <button type="button" class="btn btn-danger" onclick="handleProcess('rejected')">Reject</button>
+          <button type="button" class="btn btn-success" onclick="handleProcess('completed')">Complete & Send PDF</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../script.js"></script>
+  <script>
+    if (!DACSystem.requireAuth() || DACSystem.getSession().role !== 'registrar') {
+      window.location.href = 'login.html';
+    }
+
+    const session = DACSystem.getSession();
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      loadUserInfo();
+      await loadRequests();
+      setupEventListeners();
+    });
+
+    function loadUserInfo() {
+      const roleEl = document.getElementById('userRole');
+      if (roleEl) roleEl.textContent = session.role.replace('_', ' ').toUpperCase();
+      const deptEl = document.getElementById('userDept');
+      if (deptEl) deptEl.textContent = session.department || '—';
+    }
+
+    async function loadRequests() {
+      try {
+        const filterStatus = document.getElementById('filterStatus').value;
+        const allRequests = await DACSystem.getRequests('registrar', session.id);
+        
+        let filteredRequests = allRequests;
+        if (filterStatus !== 'all') {
+          filteredRequests = allRequests.filter(r => {
+            if (filterStatus === 'awaiting_registrar') return r.status === 'awaiting_registrar';
+            if (filterStatus === 'completed') return r.status === 'completed';
+            if (filterStatus === 'rejected') return r.registrarApproval === 'rejected';
+            return true;
+          });
+        }
+
+        // Sort latest to oldest by submitted date
+        filteredRequests.sort((a, b) => new Date(b.submittedDate || 0) - new Date(a.submittedDate || 0));
+        
+        displayRequests(filteredRequests);
+        updateStatistics(allRequests);
+      } catch (error) {
+        console.error('Error loading requests:', error);
+        document.getElementById('requestsTableBody').innerHTML = 
+          '<tr><td colspan="7" class="text-center">Error loading requests</td></tr>';
+      }
+    }
+
+    // Render add/drop course summary for the Course column
+    function formatCourseDisplay(req) {
+      const details = req.courseDetails || {};
+      const addList = Array.isArray(details.coursesToAdd) ? details.coursesToAdd.map(formatCourseItem).filter(Boolean) : [];
+      const dropList = Array.isArray(details.coursesToDrop) ? details.coursesToDrop.map(formatCourseItem).filter(Boolean) : [];
+
+      // Fallback to legacy string fields if structured data is missing
+      if (!addList.length && req.courseCode) {
+        addList.push(...req.courseCode.split(';').map(s => s.trim()).filter(Boolean));
+      }
+      if (!dropList.length && req.courseName) {
+        dropList.push(...req.courseName.split(';').map(s => s.trim()).filter(Boolean));
+      }
+
+      const addBlock = `<div><strong>ADD</strong><br><small>${addList.length ? addList.join('; ') : '—'}</small></div>`;
+      const dropBlock = `<div><strong>DROP</strong><br><small>${dropList.length ? dropList.join('; ') : '—'}</small></div>`;
+      const type = (req.type || '').toLowerCase();
+
+      if (type === 'both') {
+        return `${addBlock}<div style="margin-top:0.35rem;"></div>${dropBlock}`;
+      }
+      if (type === 'drop') {
+        return dropBlock;
+      }
+      // Default to add for legacy single-course requests
+      return addBlock;
+    }
+
+    function formatCourseItem(course) {
+      if (!course) return '';
+      if (typeof course === 'string') return course;
+
+      const code = course.code || course.name || '';
+      const metaParts = [];
+      if (course.activityType) metaParts.push(course.activityType);
+      if (course.section) metaParts.push(`Section ${course.section}`);
+      const schedule = [course.day, course.time].filter(Boolean).join(' ');
+      if (schedule) metaParts.push(schedule);
+      const meta = metaParts.join(' - ');
+
+      return meta ? `${code} (${meta})` : code;
+    }
+
+    function displayRequests(requests) {
+      const tbody = document.getElementById('requestsTableBody');
+      
+      if (requests.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">No requests found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = requests.map(req => `
+        <tr>
+          <td><strong>#${req.id}</strong></td>
+          <td>${req.studentName}<br><small style="color: var(--light-text);">${req.studentEmail}</small></td>
+          <td><span class="badge badge-${req.type === 'add' ? 'success' : 'warning'}">${req.type.toUpperCase()}</span></td>
+          <td>${formatCourseDisplay(req)}</td>
+          <td>${DACSystem.getStatusBadge(req.status)}</td>
+          <td>${DACSystem.formatDate(req.submittedDate)}</td>
+          <td>
+            ${req.status === 'awaiting_registrar' ? 
+              `<div style="display:flex; gap:0.35rem; flex-wrap: wrap;">
+                 <button class="btn btn-primary" onclick="processRequest('${req.id}')" style="padding: 0.4rem 1rem;">Process</button>
+                 <button class="btn btn-success" onclick="quickRegistrarDecision('${req.id}','completed')" style="padding: 0.4rem 0.9rem;">Approve</button>
+                 <button class="btn btn-danger" onclick="quickRegistrarDecision('${req.id}','rejected')" style="padding: 0.4rem 0.9rem;">Reject</button>
+               </div>` :
+              req.status === 'completed' ? 
+              `<button class="btn btn-success" onclick="downloadPDF('${req.id}')" style="padding: 0.4rem 1rem;">📄 PDF</button>` :
+              `<button class="btn btn-secondary" onclick="viewRequest('${req.id}')" style="padding: 0.4rem 1rem;">View</button>`
+            }
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function downloadRequestsCSV() {
+      // Use current table (already filtered and sorted) for export
+      DACSystem.exportToCSV('requestsTable', 'registrar-requests.csv');
+    }
+
+    function updateStatistics(requests) {
+      document.getElementById('totalCount').textContent = requests.length;
+      document.getElementById('awaitingCount').textContent = 
+        requests.filter(r => r.status === 'awaiting_registrar').length;
+      document.getElementById('completedCount').textContent = 
+        requests.filter(r => r.status === 'completed').length;
+      document.getElementById('rejectedCount').textContent = 
+        requests.filter(r => r.registrarApproval === 'rejected').length;
+    }
+
+    function setupEventListeners() {
+      document.getElementById('filterStatus').addEventListener('change', loadRequests);
+      document.getElementById('pendingBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('filterStatus').value = 'awaiting_registrar';
+        loadRequests();
+      });
+      document.getElementById('processedBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('filterStatus').value = 'completed';
+        loadRequests();
+      });
+      
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          DACSystem.logout();
+        });
+      }
+    }
+
+    async function processRequest(requestId) {
+      try {
+        const requests = await DACSystem.getRequests('registrar', session.id);
+        const request = requests.find(r => r.id === requestId);
+        
+        if (!request) {
+          DACSystem.showAlert('Request not found', 'danger');
+          return;
+        }
+
+        displayProcessContent(request);
+        document.getElementById('processRequestId').value = requestId;
+        
+        // Reset modal footer to show action buttons
+        resetModalFooter();
+        
+        // Enable comments field for editing
+        document.getElementById('registrarComments').disabled = false;
+        
+        DACSystem.showModal('processModal');
+      } catch (error) {
+        DACSystem.showAlert('Error loading request details', 'danger');
+      }
+    }
+
+    function displayProcessContent(request) {
+      const content = document.getElementById('processContent');
+      
+      content.innerHTML = `
+        <div class="course-card">
+          <h3>Student Information</h3>
+          <div class="course-details">
+            <div class="course-detail"><strong>Name:</strong> ${request.studentName}</div>
+            <div class="course-detail"><strong>ID:</strong> ${request.studentId}</div>
+            <div class="course-detail"><strong>Email:</strong> ${request.studentEmail}</div>
+          </div>
+
+          <h3 style="margin-top: 1.5rem;">Request Details</h3>
+          <div class="course-details">
+            <div class="course-detail"><strong>Request ID:</strong> #${request.id}</div>
+            <div class="course-detail"><strong>Type:</strong> ${request.type.toUpperCase()}</div>
+            <div class="course-detail"><strong>Course:</strong> ${request.courseCode} - ${request.courseName}</div>
+            ${request.sectionToAdd ? `<div class="course-detail"><strong>Section:</strong> ${request.sectionToAdd}</div>` : ''}
+          </div>
+
+          <h3 style="margin-top: 1.5rem;">Approval Chain</h3>
+          <div class="timeline">
+            <div class="timeline-item completed">
+              <div class="timeline-content">
+                <strong>✓ Academic Advisor</strong>
+                <p>${request.advisorName || 'Approved'}</p>
+              </div>
+            </div>
+            <div class="timeline-item completed">
+              <div class="timeline-content">
+                <strong>✓ Head of Department</strong>
+                <p>${request.hodComments || 'Approved'}</p>
+              </div>
+            </div>
+            <div class="timeline-item active">
+              <div class="timeline-content">
+                <strong>⏳ Registrar Processing</strong>
+                <p>Awaiting your action</p>
+              </div>
+            </div>
+          </div>
+
+          ${request.pdfUrl ? `<h3 style="margin-top: 1.5rem;">Approval Document</h3><a href="${request.pdfUrl}" target="_blank" class="btn btn-primary" style="display: inline-block;">📄 Download Approval PDF</a>` : ''}
+        </div>
+      `;
+    }
+
+    async function handleProcess(decision) {
+      const requestId = document.getElementById('processRequestId').value;
+      const comments = document.getElementById('registrarComments').value;
+      const footer = document.querySelector('#processModal .modal-footer');
+      const buttons = footer ? footer.querySelectorAll('button') : [];
+      const commentsField = document.getElementById('registrarComments');
+
+      const confirmMessage = decision === 'completed' 
+        ? 'This will complete the request and generate a PDF document that will be emailed to all stakeholders. Continue?' 
+        : 'Are you sure you want to reject this request?';
+
+      if (!confirm(confirmMessage)) {
+        return;
+      }
+
+      try {
+        // Prevent duplicate submissions
+        buttons.forEach(btn => btn.disabled = true);
+        if (commentsField) commentsField.disabled = true;
+
+        console.log('Registrar: Calling updateRequestStatus with decision:', decision);
+        await DACSystem.updateRequestStatus(requestId, decision, comments);
+        console.log('Registrar: API call completed, reloading page...');
+        
+        // Force page reload
+        window.location.reload(true);
+      } catch (error) {
+        console.error('handleProcess error:', error);
+        DACSystem.showAlert(error.message || 'Failed to process request', 'danger');
+        // Re-enable controls on error
+        buttons.forEach(btn => btn.disabled = false);
+        if (commentsField) commentsField.disabled = false;
+      }
+    }
+
+    async function quickRegistrarDecision(requestId, decision) {
+      const isApprove = decision === 'completed';
+      const confirmMsg = isApprove
+        ? 'Approve, complete, and email the PDF to all stakeholders?'
+        : 'Reject this request and notify stakeholders?';
+      if (!confirm(confirmMsg)) return;
+
+      try {
+        await DACSystem.updateRequestStatus(requestId, decision, '');
+        DACSystem.hideModal('processModal');
+        DACSystem.showAlert(
+          isApprove ? 'Request completed and PDF will be sent.' : 'Request rejected.',
+          isApprove ? 'success' : 'warning'
+        );
+        location.reload();
+      } catch (error) {
+        console.error('quickRegistrarDecision error', error);
+        DACSystem.showAlert(error.message || 'Failed to process request', 'danger');
+      }
+    }
+
+    async function downloadPDF(requestId) {
+      try {
+        DACSystem.showAlert('Preparing PDF...', 'info');
+        // Try to use existing pdfUrl from loaded requests to avoid empty actions
+        const requests = await DACSystem.getRequests('registrar', session.id);
+        const request = requests.find(r => r.id === requestId);
+        const pdfUrl = request && request.pdfUrl ? request.pdfUrl : null;
+
+        if (pdfUrl) {
+          window.open(pdfUrl, '_blank');
+          return;
+        }
+
+        // Fallback: ask backend to generate/return a URL
+        const result = await DACSystem.apiCall('downloadPDF', { requestId });
+        if (result && result.pdfUrl) {
+          window.open(result.pdfUrl, '_blank');
+        } else {
+          DACSystem.showAlert('No PDF available for this request yet.', 'warning');
+        }
+      } catch (error) {
+        DACSystem.showAlert('Error downloading PDF', 'danger');
+        console.error('downloadPDF error:', error);
+      }
+    }
+
+    async function viewRequest(requestId) {
+      const requests = await DACSystem.getRequests('registrar', session.id);
+      const request = requests.find(r => r.id === requestId);
+      
+      if (request) {
+        displayProcessContent(request);
+        document.querySelector('#processModal .modal-footer').innerHTML = `
+          <button type="button" class="btn btn-secondary" onclick="DACSystem.hideModal('processModal'); resetModalFooter();">Close</button>
+          ${request.pdfUrl ? `<button type="button" class="btn btn-primary" onclick="window.open('${request.pdfUrl}')">📄 Download PDF</button>` : ''}
+        `;
+        document.getElementById('registrarComments').disabled = true;
+        DACSystem.showModal('processModal');
+      }
+    }
+
+    function resetModalFooter() {
+      document.querySelector('#processModal .modal-footer').innerHTML = `
+        <button type="button" class="btn btn-secondary" onclick="DACSystem.hideModal('processModal')">Cancel</button>
+        <button type="button" class="btn btn-danger" onclick="handleProcess('rejected')">Reject</button>
+        <button type="button" class="btn btn-success" onclick="handleProcess('completed')">Complete & Send PDF</button>
+      `;
+      document.getElementById('registrarComments').disabled = false;
+    }
+  </script>
+</body>
+</html>
