@@ -605,7 +605,7 @@ function updateProfile(data) {
     },
     'advisor': {
       sheet: SHEETS.ADVISORS,
-      phoneCol: 3,              // Column D (index 3)
+      phoneCol: 4,              // Column E (index 4)
       nameCol: 1                // Column B (index 1)
     },
     'hod': {
@@ -615,7 +615,7 @@ function updateProfile(data) {
     },
     'registrar': {
       sheet: SHEETS.REGISTRARS,
-      phoneCol: 3,              // Column D (index 3)
+      phoneCol: 4,              // Column E (index 4)
       nameCol: 1                // Column B (index 1)
     }
   };
