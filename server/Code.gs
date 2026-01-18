@@ -605,15 +605,18 @@ function updateProfile(data) {
     },
     'advisor': {
       sheet: SHEETS.ADVISORS,
-      phoneCol: 3               // Column D (index 3)
+      phoneCol: 3,              // Column D (index 3)
+      nameCol: 1                // Column B (index 1)
     },
     'hod': {
       sheet: SHEETS.HODS,
-      phoneCol: 4               // Column E (index 4)
+      phoneCol: 4,              // Column E (index 4)
+      nameCol: 1                // Column B (index 1)
     },
     'registrar': {
       sheet: SHEETS.REGISTRARS,
-      phoneCol: 3               // Column D (index 3)
+      phoneCol: 3,              // Column D (index 3)
+      nameCol: 1                // Column B (index 1)
     }
   };
 
@@ -650,6 +653,12 @@ function updateProfile(data) {
   if (config.phoneCol !== undefined && data.hasOwnProperty('phone') && data.phone !== undefined) {
     ranges.push(sheet.getRange(userRowIndex + 1, config.phoneCol + 1, 1, 1)); // +1 for 1-based column
     values.push(data.phone || '');
+  }
+
+  // Staff name update (allow advisors/HODs/registrars to edit name)
+  if (data.role !== 'student' && config.nameCol !== undefined && data.hasOwnProperty('fullName') && data.fullName !== undefined) {
+    ranges.push(sheet.getRange(userRowIndex + 1, config.nameCol + 1, 1, 1));
+    values.push(data.fullName || '');
   }
 
   // Student-specific fields
@@ -798,25 +807,23 @@ function resetPassword(data) {
 }
 
 function changePassword(data) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const user = findUserByEmail(data.email);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
   const oldHashedPassword = Utilities.base64Encode(data.oldPassword);
   const newHashedPassword = Utilities.base64Encode(data.newPassword);
-  
-  const userTypes = [SHEETS.STUDENTS, SHEETS.ADVISORS, SHEETS.HODS, SHEETS.REGISTRARS];
-  
-  for (const sheetName of userTypes) {
-    const sheet = ss.getSheetByName(sheetName);
-    const users = sheet.getDataRange().getValues();
-    
-    for (let i = 1; i < users.length; i++) {
-      if (users[i][1] === data.email && users[i][2] === oldHashedPassword) {
-        sheet.getRange(i + 1, 3).setValue(newHashedPassword);
-        return { message: 'Password changed successfully' };
-      }
-    }
+
+  // Read current password from the correct column
+  const currentPassword = user.sheet.getRange(user.rowIndex + 1, user.passwordCol + 1).getValue();
+  if (currentPassword !== oldHashedPassword) {
+    throw new Error('Invalid old password');
   }
-  
-  throw new Error('Invalid old password');
+
+  // Update password in place
+  user.sheet.getRange(user.rowIndex + 1, user.passwordCol + 1).setValue(newHashedPassword);
+  return { message: 'Password changed successfully' };
 }
 
 // ===================================

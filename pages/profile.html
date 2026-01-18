@@ -53,7 +53,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="fullName">Full Name</label>
-                <input type="text" id="fullName" name="fullName" readonly>
+                 <input type="text" id="fullName" name="fullName">
               </div>
               
               <div class="form-group">
@@ -65,7 +65,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="phone">Phone Number *</label>
-                <input type="tel" id="phone" name="phone" placeholder="+966XXXXXXXXX">
+                 <input type="tel" id="phone" name="phone" placeholder="+966XXXXXXXXX" required>
               </div>
               
               <div class="form-group" id="universityIdGroup">
@@ -202,6 +202,8 @@
         document.getElementById('studentFields').style.display = 'none';
         document.getElementById('universityIdGroup').style.display = 'none';
         document.getElementById('academicInfo').style.display = 'none';
+        // Allow staff to edit their name
+        document.getElementById('fullName').removeAttribute('readonly');
       }
     }
 
@@ -220,7 +222,9 @@
         if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Updating...'; }
         try {
           await DACSystem.updateProfile(formData);
-          DACSystem.showAlert('Profile updated successfully!', 'success');
+            DACSystem.showAlert('Profile updated successfully!', 'success');
+            // Optional toast for extra visibility
+            if (window.toast) { toast.success('Profile updated successfully!'); }
         } catch (error) {
           DACSystem.showAlert(error.message || 'Failed to update profile', 'danger');
         } finally {
@@ -241,7 +245,8 @@
         
         try {
           await DACSystem.changePassword(formData.currentPassword, formData.newPassword);
-          DACSystem.showAlert('Password changed successfully!', 'success');
+            DACSystem.showAlert('Password changed successfully!', 'success');
+            if (window.toast) { toast.success('Your password has been changed.'); }
           DACSystem.resetForm('passwordForm');
         } catch (error) {
           DACSystem.showAlert(error.message || 'Failed to change password', 'danger');
