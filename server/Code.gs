@@ -989,6 +989,8 @@ function getRequests(data) {
   const studentMap = {};
   for (let i = 1; i < studentsData.length; i++) {
     studentMap[studentsData[i][0]] = {
+      // University identity number from Students sheet (Column C / index 2)
+      universityId: studentsData[i][2] || '',
       level: studentsData[i][6] || '', // Column G (index 6)
       gpa: studentsData[i][10] || '', // Column K (index 10)
       department: studentsData[i][5] || '', // Column F (index 5)
@@ -1047,6 +1049,7 @@ function getRequests(data) {
         studentId: row[1],
         studentName: row[2],
         studentEmail: row[3],
+        universityId: studentDetails.universityId || 'N/A',
         type: row[4],
         courseCode: row[5],
         courseName: row[6],

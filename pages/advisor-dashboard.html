@@ -208,7 +208,7 @@
       tbody.innerHTML = requests.map(req => `
         <tr>
           <td><strong>#${req.id}</strong></td>
-          <td>${req.studentName}<br><small style="color: var(--light-text);">${req.studentEmail}</small></td>
+          <td>${req.studentName}<br><small style="color: var(--light-text);">${req.studentEmail}</small><br><small style="color: var(--light-text);">UID: ${req.universityId || '—'}</small></td>
           <td><span class="badge badge-${req.type === 'add' ? 'success' : 'warning'}">${req.type.toUpperCase()}</span></td>
           <td>${req.courseCode || 'N/A'}<br><small>${req.courseName || ''}</small></td>
           <td>${DACSystem.getStatusBadge(req.status)}</td>
@@ -330,7 +330,7 @@
           <h3>Student Information</h3>
           <div class="course-details">
             <div class="course-detail"><strong>Name:</strong> ${request.studentName}</div>
-            <div class="course-detail"><strong>ID:</strong> ${request.studentId}</div>
+            <div class="course-detail"><strong>University ID:</strong> ${request.universityId || 'N/A'}</div>
             <div class="course-detail"><strong>Email:</strong> ${request.studentEmail}</div>
             <div class="course-detail"><strong>Department:</strong> ${request.department || 'N/A'}</div>
             <div class="course-detail"><strong>Level:</strong> ${request.level || 'N/A'}</div>
