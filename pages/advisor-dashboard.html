@@ -32,6 +32,7 @@
         <!-- Dashboard Header -->
         <div class="dashboard-header">
           <h1>Advisor Dashboard</h1>
+          <p style="font-size: 1.1rem; font-weight: 500; color: var(--primary-color); margin: 0.5rem 0;">Welcome, <span id="advisorName">Advisor</span></p>
           <p>Review and approve student add/drop requests</p>
           <div class="user-chips">
             <span class="chip chip-strong" id="userRole">Academic Advisor</span>
@@ -160,6 +161,8 @@
     });
 
     function loadUserInfo() {
+      const nameEl = document.getElementById('advisorName');
+      if (nameEl) nameEl.textContent = session.fullName || 'Advisor';
       const roleEl = document.getElementById('userRole');
       if (roleEl) roleEl.textContent = session.role.replace('_', ' ').toUpperCase();
       const deptEl = document.getElementById('userDept');

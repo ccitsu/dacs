@@ -49,6 +49,7 @@
         <div class="dashboard-header">
           <button class="btn btn-secondary mobile-only" id="toggleSidebar" aria-label="Toggle sidebar" aria-expanded="true">☰ Menu</button>
           <h1>Head of Department Dashboard</h1>
+          <p style="font-size: 1.1rem; font-weight: 500; color: var(--primary-color); margin: 0.5rem 0;">Welcome, <span id="hodName">HOD</span></p>
           <p>Review advisor-approved requests</p>
           <div id="deptBadge" style="display:inline-block;margin-top:0.5rem;padding:0.25rem 0.5rem;border-radius:999px;background: var(--light-bg); color: var(--primary-color); font-weight:600; font-size:0.9rem;">Department: --</div>
         </div>
@@ -157,10 +158,6 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       loadUserInfo();
-      // Set department badge
-      const dept = session.department || 'All';
-      const el = document.getElementById('deptBadge');
-      if (el) el.textContent = `Department: ${dept}`;
       await loadRequests();
       setupEventListeners();
       // Initialize sidebar toggle state
@@ -178,6 +175,15 @@
       document.querySelector('.user-role').textContent = session.role.replace('_', ' ').toUpperCase();
       const deptEl = document.querySelector('.user-dept');
       if (deptEl) deptEl.textContent = session.department || '—';
+      
+      // Populate dashboard name
+      const nameEl = document.getElementById('hodName');
+      if (nameEl) nameEl.textContent = session.fullName || 'HOD';
+      
+      // Set department badge
+      const dept = session.department || 'All';
+      const el = document.getElementById('deptBadge');
+      if (el) el.textContent = `Department: ${dept}`;
     }
 
     async function loadRequests() {

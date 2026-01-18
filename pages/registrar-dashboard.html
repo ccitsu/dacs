@@ -32,6 +32,7 @@
         <!-- Dashboard Header -->
         <div class="dashboard-header">
           <h1>Registrar Dashboard</h1>
+          <p style="font-size: 1.1rem; font-weight: 500; color: var(--primary-color); margin: 0.5rem 0;">Welcome, <span id="registrarName">Registrar</span></p>
           <p>Final processing and registration of approved requests</p>
           <div class="user-chips">
             <span class="chip chip-strong" id="userRole">Registrar</span>
@@ -159,6 +160,8 @@
     });
 
     function loadUserInfo() {
+      const nameEl = document.getElementById('registrarName');
+      if (nameEl) nameEl.textContent = session.fullName || 'Registrar';
       const roleEl = document.getElementById('userRole');
       if (roleEl) roleEl.textContent = session.role.replace('_', ' ').toUpperCase();
       const deptEl = document.getElementById('userDept');
