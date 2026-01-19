@@ -1244,12 +1244,20 @@ table tbody tr:last-child td {
   padding: var(--spacing-lg) var(--spacing-xl);
   border-radius: var(--radius-lg);
   margin-bottom: var(--spacing-xl);
-  display: none;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
   border-left: 4px solid;
+  position: relative;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all var(--transition-base) ease;
 }
 
 .alert.active {
-  display: block;
+  opacity: 1;
+  transform: translateY(0);
   animation: slideDown var(--transition-base) ease;
 }
 

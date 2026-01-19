@@ -349,18 +349,22 @@
             ${request.sectionToAdd ? `<div class="course-detail"><strong>Section:</strong> ${request.sectionToAdd}</div>` : ''}
           </div>
 
+          <h3 style="margin-top: 1.5rem;">Student's Reason</h3>
+          <p style="background: var(--light-bg); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">${request.reason || 'No reason provided'}</p>
+
           <h3 style="margin-top: 1.5rem;">Approval Chain</h3>
           <div class="timeline">
             <div class="timeline-item completed">
               <div class="timeline-content">
                 <strong>✓ Academic Advisor</strong>
-                <p>${request.advisorName || 'Approved'}</p>
+                <p><strong>${request.advisorName || 'N/A'}</strong></p>
+                ${request.advisorComments ? `<p style="background: #f0f8f4; padding: 0.75rem; border-radius: 6px; margin-top: 0.5rem;"><em>Comments:</em> ${request.advisorComments}</p>` : '<p style="color: var(--light-text); font-style: italic;">No comments</p>'}
               </div>
             </div>
             <div class="timeline-item completed">
               <div class="timeline-content">
                 <strong>✓ Head of Department</strong>
-                <p>${request.hodComments || 'Approved'}</p>
+                ${request.hodComments ? `<p style="background: #f0f8f4; padding: 0.75rem; border-radius: 6px; margin-top: 0.5rem;"><em>Comments:</em> ${request.hodComments}</p>` : '<p style="color: var(--light-text); font-style: italic;">No comments</p>'}
               </div>
             </div>
             <div class="timeline-item active">

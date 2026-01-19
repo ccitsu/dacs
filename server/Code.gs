@@ -540,7 +540,7 @@ function loginUser(data) {
         if (userType.role !== 'student') {
           const staffTypes = [
             { sheet: SHEETS.ADVISORS, role: 'advisor', emailCol: 2, passwordCol: 7 },
-            { sheet: SHEETS.HODS, role: 'hod', emailCol: 2, passwordCol: 6 },
+            { sheet: SHEETS.HODS, role: 'hod', emailCol: 3, passwordCol: 6 },
             { sheet: SHEETS.REGISTRARS, role: 'registrar', emailCol: 2, passwordCol: 5 }
           ];
           
@@ -1024,12 +1024,23 @@ function getRequests(data) {
       if ((isAwaiting || isReviewedByHOD) && departmentMatches) {
         includeRequest = true;
       }
-    } else if (data.userRole === 'registrar' && (row[10] === 'awaiting_registrar' || row[10] === 'completed' || row[10] === 'rejected')) {
-      // Registrar sees only requests for their department
+    } else if (data.userRole === 'registrar') {
+      // Registrar sees:
+      // - awaiting_registrar (pending registrar review)
+      // - completed (processed by registrar)
+      // - rejected ONLY if registrar rejected it (not if advisor/HOD rejected)
       const studentId = row[1];
       const studentDept = studentMap[studentId] ? (studentMap[studentId].department || '') : '';
       const departmentMatches = !registrarDepartment || (studentDept === registrarDepartment);
-      if (departmentMatches) {
+      const status = row[10];
+      const registrarApproval = row[14] || ''; // Column O (index 14)
+      
+      // Show if awaiting registrar, completed, or rejected by registrar specifically
+      const shouldShow = (status === 'awaiting_registrar') || 
+                        (status === 'completed') || 
+                        (status === 'rejected' && registrarApproval === 'rejected');
+      
+      if (departmentMatches && shouldShow) {
         includeRequest = true;
       }
     }
@@ -1040,9 +1051,11 @@ function getRequests(data) {
       const studentDetails = studentMap[studentId] || {};
       const requestId = row[0];
       
-      // Get advisor comments from approvals map
+      // Get advisor and HOD comments from approvals map
       const advisorCommentsKey = `${requestId}_advisor`;
       const advisorComments = approvalMap[advisorCommentsKey] || '';
+      const hodCommentsKey = `${requestId}_hod`;
+      const hodComments = approvalMap[hodCommentsKey] || '';
       
       requests.push({
         id: row[0],
@@ -1067,6 +1080,7 @@ function getRequests(data) {
         advisorName: row[18],
         advisorEmail: row[19],
         advisorComments: advisorComments,
+        hodComments: hodComments,
         level: studentDetails.level || 'N/A',
         gpa: studentDetails.gpa || 'N/A',
         department: studentDetails.department || 'N/A',

@@ -58,7 +58,7 @@ function hideLoading() {
  */
 function showAlert(message, type = 'info') {
   const alertDiv = document.createElement('div');
-  alertDiv.className = `alert alert-${type}`;
+  alertDiv.className = `alert alert-${type} active`;
   alertDiv.innerHTML = `
     <span>${type === 'success' ? '✓' : type === 'danger' ? '✕' : type === 'warning' ? '⚠' : 'ℹ'}</span>
     <span>${message}</span>
@@ -67,9 +67,13 @@ function showAlert(message, type = 'info') {
   const container = document.querySelector('.container') || document.body;
   container.insertBefore(alertDiv, container.firstChild);
   
+  // Scroll to alert so it's visible
+  alertDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  
   // Auto remove after 5 seconds
   setTimeout(() => {
-    alertDiv.remove();
+    alertDiv.classList.remove('active');
+    setTimeout(() => alertDiv.remove(), 300);
   }, 5000);
 }
 
