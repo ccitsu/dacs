@@ -492,6 +492,7 @@
 
     async function loadDailyStats(date = null) {
       try {
+        console.log('🔵 Calling getRequestStats with BACKEND_URL:', CONFIG.BACKEND_URL);
         const response = await fetch(CONFIG.BACKEND_URL, {
           method: 'POST',
           headers: {
@@ -503,7 +504,10 @@
           })
         });
 
+        console.log('Response status:', response.status);
         const result = await response.json();
+        console.log('Response data:', result);
+        
         if (result.success) {
           const stats = result.data;
           document.getElementById('submittedCount').textContent = stats.submitted;
@@ -511,15 +515,20 @@
           document.getElementById('rejectedCount').textContent = stats.rejected;
           document.getElementById('pendingCount').textContent = stats.pending;
           document.getElementById('submittedDate').textContent = `${stats.date}`;
+        } else {
+          console.error('API Error:', result.message);
+          document.getElementById('submittedCount').textContent = 'API Error';
         }
       } catch (error) {
-        console.error('Error loading stats:', error);
-        document.getElementById('submittedCount').textContent = 'Error';
+        console.error('Network Error loading stats:', error);
+        document.getElementById('submittedCount').textContent = 'Connection Error';
+        alert('⚠️ Connection Error!\n\nPlease check:\n1. BACKEND_URL is correct in script.js\n2. Google Apps Script is deployed\n\nOpen browser console (F12) for details.');
       }
     }
 
     async function loadPendingRequests() {
       try {
+        console.log('🔵 Calling getPendingRequests with URL:', CONFIG.BACKEND_URL);
         const response = await fetch(CONFIG.BACKEND_URL, {
           method: 'POST',
           headers: {
@@ -531,7 +540,10 @@
           })
         });
 
+        console.log('Response status:', response.status);
         const result = await response.json();
+        console.log('getPendingRequests result:', result);
+        
         if (result.success) {
           const data = result.data;
 
@@ -558,15 +570,25 @@
                 .join('')
             : '<p style="color: #999;">No pending requests with registrars</p>';
           document.getElementById('registrarPending').innerHTML = registrarHtml;
+        } else {
+          console.error('API Error:', result.message);
+          const errorMsg = `<p class="error-message">⚠️ API Error: ${result.message}</p>`;
+          document.getElementById('advisorPending').innerHTML = errorMsg;
+          document.getElementById('hodPending').innerHTML = errorMsg;
+          document.getElementById('registrarPending').innerHTML = errorMsg;
         }
       } catch (error) {
-        console.error('Error loading pending requests:', error);
-        document.getElementById('advisorPending').innerHTML = '<p class="error-message">Failed to load data</p>';
+        console.error('❌ Network Error loading pending requests:', error);
+        const errorMsg = `<p class="error-message">❌ Connection Error - Check BACKEND_URL</p>`;
+        document.getElementById('advisorPending').innerHTML = errorMsg;
+        document.getElementById('hodPending').innerHTML = errorMsg;
+        document.getElementById('registrarPending').innerHTML = errorMsg;
       }
     }
 
     async function loadMostWantedCourses() {
       try {
+        console.log('🔵 Calling getMostWantedCourses');
         const response = await fetch(CONFIG.BACKEND_URL, {
           method: 'POST',
           headers: {
@@ -578,7 +600,10 @@
           })
         });
 
+        console.log('Response status:', response.status);
         const result = await response.json();
+        console.log('getMostWantedCourses result:', result);
+        
         if (result.success) {
           const courses = result.data.mostWantedCourses;
           const tbody = document.getElementById('mostWantedTable');
@@ -595,15 +620,19 @@
           } else {
             tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">No course request data available</td></tr>';
           }
+        } else {
+          console.error('API Error:', result.message);
+          document.getElementById('mostWantedTable').innerHTML = `<tr><td colspan="4" class="error-message">⚠️ ${result.message}</td></tr>`;
         }
       } catch (error) {
-        console.error('Error loading most wanted courses:', error);
-        document.getElementById('mostWantedTable').innerHTML = '<tr><td colspan="4" class="error-message">Failed to load data</td></tr>';
+        console.error('❌ Network Error loading most wanted courses:', error);
+        document.getElementById('mostWantedTable').innerHTML = '<tr><td colspan="4" class="error-message">❌ Connection Error - Check BACKEND_URL</td></tr>';
       }
     }
 
     async function loadTotalRequestsReport() {
       try {
+        console.log('🔵 Calling getTotalRequestsReport');
         const response = await fetch(CONFIG.BACKEND_URL, {
           method: 'POST',
           headers: {
@@ -615,7 +644,10 @@
           })
         });
 
+        console.log('Response status:', response.status);
         const result = await response.json();
+        console.log('getTotalRequestsReport result:', result);
+        
         if (result.success) {
           const report = result.data;
           
@@ -678,10 +710,17 @@
           } else {
             tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">No requests found</td></tr>';
           }
+        } else {
+          console.error('API Error:', result.message);
+          const errorMsg = `<p class="error-message">⚠️ API Error: ${result.message}</p>`;
+          document.getElementById('requestSummary').innerHTML = errorMsg;
+          document.getElementById('requestsTableBody').innerHTML = `<tr><td colspan="8" class="error-message">${result.message}</td></tr>`;
         }
       } catch (error) {
-        console.error('Error loading report:', error);
-        document.getElementById('requestSummary').innerHTML = '<p class="error-message">Failed to load report data</p>';
+        console.error('❌ Network Error loading report:', error);
+        const errorMsg = '<p class="error-message">❌ Connection Error - Check BACKEND_URL in script.js</p>';
+        document.getElementById('requestSummary').innerHTML = errorMsg;
+        document.getElementById('requestsTableBody').innerHTML = '<tr><td colspan="8" class="error-message">Connection Error</td></tr>';
       }
     }
 
