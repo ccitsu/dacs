@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics Dashboard - Course Add/Drop System</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .analytics-container {
+      max-width: 1400px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+
+    .analytics-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .analytics-header h1 {
+      margin: 0;
+      font-size: 2em;
+      color: #333;
+    }
+
+    .date-filter {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .date-filter input {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .btn-filter {
+      padding: 8px 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-filter:hover {
+      background-color: #0056b3;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .stat-card h3 {
+      margin: 0 0 10px 0;
+      color: #666;
+      font-size: 14px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: bold;
+      color: #007bff;
+      margin: 10px 0;
+    }
+
+    .stat-subtext {
+      font-size: 12px;
+      color: #999;
+    }
+
+    .section {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .section h2 {
+      margin-top: 0;
+      color: #333;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 10px;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th {
+      background-color: #f5f5f5;
+      padding: 12px;
+      text-align: left;
+      border-bottom: 2px solid #ddd;
+      font-weight: 600;
+      color: #333;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    tr:hover {
+      background-color: #f9f9f9;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-pending {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .badge-approved {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .badge-rejected {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .badge-completed {
+      background-color: #d1ecf1;
+      color: #0c5460;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    .error-message {
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+      padding: 12px 20px;
+      border-radius: 4px;
+      margin: 15px 0;
+    }
+
+    .success-message {
+      background-color: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+      padding: 12px 20px;
+      border-radius: 4px;
+      margin: 15px 0;
+    }
+
+    .list-item {
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .list-item:last-child {
+      border-bottom: none;
+    }
+
+    .list-item-name {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .list-item-count {
+      background-color: #007bff;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .export-btn {
+      background-color: #28a745;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 15px;
+    }
+
+    .export-btn:hover {
+      background-color: #218838;
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .analytics-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .date-filter {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .date-filter input,
+      .btn-filter {
+        width: 100%;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Access Control Check -->
+  <script>
+    // Verify user is logged in and has appropriate role
+    (function() {
+      const session = localStorage.getItem('dac_user_session');
+      
+      if (!session) {
+        // Not logged in - redirect to login
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      try {
+        const userData = JSON.parse(session);
+        
+        // Allowed roles: admin, registrar, hod, advisor
+        // Note: Adjust based on your role system
+        const allowedRoles = ['admin', 'registrar', 'hod'];
+        
+        if (!allowedRoles.includes(userData.role)) {
+          // Not authorized - show access denied
+          document.write(`
+            <div style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100vh;
+              background-color: #f5f5f5;
+              font-family: Arial, sans-serif;
+            ">
+              <div style="
+                background: white;
+                padding: 40px;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                text-align: center;
+                max-width: 500px;
+              ">
+                <h1 style="color: #dc3545; margin-bottom: 20px;">🔒 Access Denied</h1>
+                <p style="color: #666; font-size: 16px; margin: 20px 0;">
+                  Only administrators, registrars, and heads of departments can access analytics.
+                </p>
+                <p style="color: #999; font-size: 14px;">
+                  Your role: <strong>${userData.role}</strong>
+                </p>
+                <a href="login.html" style="
+                  display: inline-block;
+                  margin-top: 20px;
+                  padding: 12px 24px;
+                  background-color: #007bff;
+                  color: white;
+                  text-decoration: none;
+                  border-radius: 4px;
+                  font-size: 16px;
+                ">← Back to Login</a>
+              </div>
+            </div>
+          `);
+          return;
+        }
+        
+        // Store current user for reference
+        window.currentUser = userData;
+        
+      } catch (e) {
+        // Invalid session - redirect to login
+        window.location.href = 'login.html';
+      }
+    })();
+  </script>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="../index.html" class="logo">
+        <div class="logo-icon">
+          <img src="../assets/LogoC.JPG" alt="Shaqra University Logo">
+        </div>
+        <span>Course Add/Drop System</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="../pages/login.html" class="btn">Logout</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="analytics-container">
+    <!-- Header with Date Filter -->
+    <div class="analytics-header">
+      <h1>📊 Analytics Dashboard</h1>
+      <div class="date-filter">
+        <label for="filterDate">Filter by Date:</label>
+        <input type="date" id="filterDate">
+        <button class="btn-filter" onclick="filterByDate()">Apply</button>
+        <button class="btn-filter" onclick="loadAllAnalytics()" style="background-color: #6c757d;">Reset</button>
+      </div>
+    </div>
+
+    <!-- Daily Statistics -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>📝 Requests Submitted</h3>
+        <div class="stat-value" id="submittedCount">-</div>
+        <div class="stat-subtext" id="submittedDate">Today</div>
+      </div>
+      <div class="stat-card">
+        <h3>✅ Requests Approved</h3>
+        <div class="stat-value" id="approvedCount">-</div>
+        <div class="stat-subtext">Completed</div>
+      </div>
+      <div class="stat-card">
+        <h3>❌ Requests Rejected</h3>
+        <div class="stat-value" id="rejectedCount">-</div>
+        <div class="stat-subtext">Not Approved</div>
+      </div>
+      <div class="stat-card">
+        <h3>⏳ Pending Requests</h3>
+        <div class="stat-value" id="pendingCount">-</div>
+        <div class="stat-subtext">Awaiting Action</div>
+      </div>
+    </div>
+
+    <!-- Pending Requests by Role -->
+    <div class="section">
+      <h2>⏱️ Pending Requests by Role</h2>
+      <div class="table-wrapper">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+          
+          <!-- Advisors -->
+          <div>
+            <h3 style="color: #007bff; margin-bottom: 15px;">👨‍🏫 Pending with Advisors</h3>
+            <div id="advisorPending" class="loading">Loading...</div>
+          </div>
+
+          <!-- HODs -->
+          <div>
+            <h3 style="color: #007bff; margin-bottom: 15px;">👔 Pending with HODs</h3>
+            <div id="hodPending" class="loading">Loading...</div>
+          </div>
+
+          <!-- Registrars -->
+          <div>
+            <h3 style="color: #007bff; margin-bottom: 15px;">📋 Pending with Registrars</h3>
+            <div id="registrarPending" class="loading">Loading...</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Most Wanted Courses -->
+    <div class="section">
+      <h2>🏆 Top 10 Most Requested Courses</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Course Code</th>
+              <th>Course Name</th>
+              <th>Request Count</th>
+            </tr>
+          </thead>
+          <tbody id="mostWantedTable">
+            <tr>
+              <td colspan="4" class="loading">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Total Requests Report -->
+    <div class="section">
+      <h2>📑 All Requests Summary</h2>
+      <div id="requestSummary" class="loading">Loading...</div>
+      <div id="requestsTableContainer" style="margin-top: 20px;">
+        <h3 style="color: #333;">Request Details</h3>
+        <div class="table-wrapper">
+          <table id="requestsTable">
+            <thead>
+              <tr>
+                <th>Request ID</th>
+                <th>Student Name</th>
+                <th>Student ID</th>
+                <th>Course(s)</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Submitted Date</th>
+                <th>Advisor</th>
+              </tr>
+            </thead>
+            <tbody id="requestsTableBody">
+              <tr>
+                <td colspan="8" class="loading">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <button class="export-btn" onclick="exportToCSV()">📥 Export to CSV</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    // Load analytics on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      loadAllAnalytics();
+    });
+
+    function loadAllAnalytics() {
+      // Clear the date filter
+      document.getElementById('filterDate').value = '';
+      
+      // Load all analytics
+      loadDailyStats();
+      loadPendingRequests();
+      loadMostWantedCourses();
+      loadTotalRequestsReport();
+    }
+
+    function filterByDate() {
+      const dateInput = document.getElementById('filterDate').value;
+      if (!dateInput) {
+        alert('Please select a date');
+        return;
+      }
+      loadDailyStats(dateInput);
+    }
+
+    async function loadDailyStats(date = null) {
+      try {
+        const response = await fetch(CONFIG.BACKEND_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            action: 'getRequestStats',
+            data: date ? { date: date } : {}
+          })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          const stats = result.data;
+          document.getElementById('submittedCount').textContent = stats.submitted;
+          document.getElementById('approvedCount').textContent = stats.approved;
+          document.getElementById('rejectedCount').textContent = stats.rejected;
+          document.getElementById('pendingCount').textContent = stats.pending;
+          document.getElementById('submittedDate').textContent = `${stats.date}`;
+        }
+      } catch (error) {
+        console.error('Error loading stats:', error);
+        document.getElementById('submittedCount').textContent = 'Error';
+      }
+    }
+
+    async function loadPendingRequests() {
+      try {
+        const response = await fetch(CONFIG.BACKEND_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            action: 'getPendingRequests',
+            data: {}
+          })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          const data = result.data;
+
+          // Advisors
+          const advisorHtml = Object.entries(data.pendingByAdvisor).length > 0 
+            ? Object.entries(data.pendingByAdvisor)
+                .map(([name, count]) => `<div class="list-item"><span class="list-item-name">${name}</span><span class="list-item-count">${count}</span></div>`)
+                .join('')
+            : '<p style="color: #999;">No pending requests with advisors</p>';
+          document.getElementById('advisorPending').innerHTML = advisorHtml;
+
+          // HODs
+          const hodHtml = Object.entries(data.pendingByHOD).length > 0 
+            ? Object.entries(data.pendingByHOD)
+                .map(([name, count]) => `<div class="list-item"><span class="list-item-name">${name}</span><span class="list-item-count">${count}</span></div>`)
+                .join('')
+            : '<p style="color: #999;">No pending requests with HODs</p>';
+          document.getElementById('hodPending').innerHTML = hodHtml;
+
+          // Registrars
+          const registrarHtml = Object.entries(data.pendingByRegistrar).length > 0 
+            ? Object.entries(data.pendingByRegistrar)
+                .map(([name, count]) => `<div class="list-item"><span class="list-item-name">${name}</span><span class="list-item-count">${count}</span></div>`)
+                .join('')
+            : '<p style="color: #999;">No pending requests with registrars</p>';
+          document.getElementById('registrarPending').innerHTML = registrarHtml;
+        }
+      } catch (error) {
+        console.error('Error loading pending requests:', error);
+        document.getElementById('advisorPending').innerHTML = '<p class="error-message">Failed to load data</p>';
+      }
+    }
+
+    async function loadMostWantedCourses() {
+      try {
+        const response = await fetch(CONFIG.BACKEND_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            action: 'getMostWantedCourses',
+            data: { limit: 10 }
+          })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          const courses = result.data.mostWantedCourses;
+          const tbody = document.getElementById('mostWantedTable');
+          
+          if (courses.length > 0) {
+            tbody.innerHTML = courses.map((course, index) => `
+              <tr>
+                <td>${index + 1}</td>
+                <td><strong>${course.courseCode}</strong></td>
+                <td>${course.courseName}</td>
+                <td><span class="list-item-count">${course.requestCount}</span></td>
+              </tr>
+            `).join('');
+          } else {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">No course request data available</td></tr>';
+          }
+        }
+      } catch (error) {
+        console.error('Error loading most wanted courses:', error);
+        document.getElementById('mostWantedTable').innerHTML = '<tr><td colspan="4" class="error-message">Failed to load data</td></tr>';
+      }
+    }
+
+    async function loadTotalRequestsReport() {
+      try {
+        const response = await fetch(CONFIG.BACKEND_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            action: 'getTotalRequestsReport',
+            data: {}
+          })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          const report = result.data;
+          
+          // Show summary
+          const summary = `
+            <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
+              <div class="stat-card">
+                <h3>Total Requests</h3>
+                <div class="stat-value" style="color: #007bff;">${report.totalRequests}</div>
+              </div>
+              <div class="stat-card">
+                <h3>Submitted</h3>
+                <div class="stat-value" style="color: #ffc107;">${report.statusSummary.submitted || 0}</div>
+              </div>
+              <div class="stat-card">
+                <h3>Awaiting Advisor</h3>
+                <div class="stat-value" style="color: #17a2b8;">${report.statusSummary.awaiting_advisor || 0}</div>
+              </div>
+              <div class="stat-card">
+                <h3>Awaiting HOD</h3>
+                <div class="stat-value" style="color: #17a2b8;">${report.statusSummary.awaiting_hod || 0}</div>
+              </div>
+              <div class="stat-card">
+                <h3>Awaiting Registrar</h3>
+                <div class="stat-value" style="color: #17a2b8;">${report.statusSummary.awaiting_registrar || 0}</div>
+              </div>
+              <div class="stat-card">
+                <h3>Completed</h3>
+                <div class="stat-value" style="color: #28a745;">${report.statusSummary.completed || 0}</div>
+              </div>
+              <div class="stat-card">
+                <h3>Rejected</h3>
+                <div class="stat-value" style="color: #dc3545;">${report.statusSummary.rejected || 0}</div>
+              </div>
+            </div>
+          `;
+          document.getElementById('requestSummary').innerHTML = summary;
+
+          // Show table
+          const tbody = document.getElementById('requestsTableBody');
+          if (report.requests.length > 0) {
+            tbody.innerHTML = report.requests.map(req => {
+              let statusBadge = 'badge-pending';
+              if (req.status === 'completed') statusBadge = 'badge-completed';
+              else if (req.status === 'rejected') statusBadge = 'badge-rejected';
+
+              return `
+                <tr>
+                  <td><strong>${req.requestId}</strong></td>
+                  <td>${req.studentName}</td>
+                  <td>${req.studentId}</td>
+                  <td>${req.coursesToAdd || req.coursesToDrop || 'N/A'}</td>
+                  <td>${req.requestType}</td>
+                  <td><span class="badge ${statusBadge}">${req.status}</span></td>
+                  <td>${new Date(req.submittedDate).toLocaleDateString()}</td>
+                  <td>${req.advisorName || 'N/A'}</td>
+                </tr>
+              `;
+            }).join('');
+          } else {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">No requests found</td></tr>';
+          }
+        }
+      } catch (error) {
+        console.error('Error loading report:', error);
+        document.getElementById('requestSummary').innerHTML = '<p class="error-message">Failed to load report data</p>';
+      }
+    }
+
+    function exportToCSV() {
+      const table = document.getElementById('requestsTable');
+      let csv = [];
+      let rows = table.querySelectorAll('tr');
+
+      for (let i = 0; i < rows.length; i++) {
+        let row = [], cols = rows[i].querySelectorAll('td, th');
+        for (let j = 0; j < cols.length; j++) {
+          row.push(cols[j].innerText);
+        }
+        csv.push(row.join(','));
+      }
+
+      const csvContent = csv.join('\n');
+      const link = document.createElement('a');
+      link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+      link.download = `requests_report_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+    }
+  </script>
+</body>
+</html>
