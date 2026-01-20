@@ -259,7 +259,10 @@
                  <button class="btn btn-danger" onclick="quickRegistrarDecision('${req.id}','rejected')" style="padding: 0.4rem 0.9rem;">Reject</button>
                </div>` :
               req.status === 'completed' ? 
-              `<button class="btn btn-success" onclick="downloadPDF('${req.id}')" style="padding: 0.4rem 1rem;">📄 PDF</button>` :
+              `<div style="display:flex; gap:0.35rem; flex-wrap: wrap;">
+                 <button class="btn btn-secondary" onclick="viewRequest('${req.id}')" style="padding: 0.4rem 1rem;">View</button>
+                 <button class="btn btn-success" onclick="downloadPDF('${req.id}')" style="padding: 0.4rem 1rem;">📄 PDF</button>
+               </div>` :
               `<button class="btn btn-secondary" onclick="viewRequest('${req.id}')" style="padding: 0.4rem 1rem;">View</button>`
             }
           </td>
@@ -331,7 +334,13 @@
 
     function displayProcessContent(request) {
       const content = document.getElementById('processContent');
-      
+
+      const registrarState = (() => {
+        if (request.status === 'completed') return { label: '✓ Registrar (Completed)', color: '#0c7c3f' };
+        if (request.registrarApproval === 'rejected' || request.status === 'rejected') return { label: '✗ Registrar (Rejected)', color: '#b00020' };
+        return { label: '⏳ Registrar Processing', color: 'var(--text-color)' };
+      })();
+
       content.innerHTML = `
         <div class="course-card">
           <h3>Student Information</h3>
@@ -367,10 +376,10 @@
                 ${request.hodComments ? `<p style="background: #f0f8f4; padding: 0.75rem; border-radius: 6px; margin-top: 0.5rem;"><em>Comments:</em> ${request.hodComments}</p>` : '<p style="color: var(--light-text); font-style: italic;">No comments</p>'}
               </div>
             </div>
-            <div class="timeline-item active">
+            <div class="timeline-item ${request.status === 'awaiting_registrar' ? 'active' : 'completed'}">
               <div class="timeline-content">
-                <strong>⏳ Registrar Processing</strong>
-                <p>Awaiting your action</p>
+                <strong style="color:${registrarState.color};">${registrarState.label}</strong>
+                ${request.registrarComments ? `<p style="background: #f0f8f4; padding: 0.75rem; border-radius: 6px; margin-top: 0.5rem;"><em>Comments:</em> ${request.registrarComments}</p>` : '<p style="color: var(--light-text); font-style: italic;">No comments</p>'}
               </div>
             </div>
           </div>
