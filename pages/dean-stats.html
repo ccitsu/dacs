@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dean Statistics Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+        }
+
+        .stat-label {
+            font-size: 0.95em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-subtext {
+            font-size: 0.85em;
+            color: #999;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.6em;
+            color: #333;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+
+        .list-item:hover {
+            background: #f9f9f9;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .list-name {
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+        }
+
+        .list-count {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: background 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .refresh-btn:hover {
+            background: #764ba2;
+        }
+
+        .timestamp {
+            text-align: center;
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 30px;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #c33;
+            margin-bottom: 20px;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Dean Statistics Dashboard</h1>
+            <p>Course Add/Drop Management System - Analytics</p>
+        </header>
+
+        <div id="error-container"></div>
+
+        <button class="refresh-btn" onclick="loadStatistics()">🔄 Refresh Statistics</button>
+
+        <!-- Summary Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Requests</div>
+                <div class="stat-value" id="total-requests">-</div>
+                <div class="stat-subtext">All requests in the system</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Completed Requests</div>
+                <div class="stat-value" id="completed-requests">-</div>
+                <div class="stat-subtext">Fully approved and processed</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Rejected Requests</div>
+                <div class="stat-value" id="rejected-requests">-</div>
+                <div class="stat-subtext">Rejected at any stage</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Total Courses Added</div>
+                <div class="stat-value" id="courses-added">-</div>
+                <div class="stat-subtext">Across all approved requests</div>
+            </div>
+        </div>
+
+        <!-- Advisors & HODs Pending -->
+        <div class="two-column">
+            <div class="section">
+                <h2 class="section-title">⏳ Advisors with Pending Requests</h2>
+                <div id="advisors-pending">
+                    <div class="empty-state">
+                        <p>Loading advisors...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">⏳ HODs with Pending Requests</h2>
+                <div id="hods-pending">
+                    <div class="empty-state">
+                        <p>Loading HODs...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Courses & Sections -->
+        <div class="two-column">
+            <div class="section">
+                <h2 class="section-title">🏫 Most Used Courses</h2>
+                <div id="most-used-courses">
+                    <div class="empty-state">
+                        <p>Loading courses...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">📍 Most Popular Sections</h2>
+                <div id="most-popular-sections">
+                    <div class="empty-state">
+                        <p>Loading sections...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Student -->
+        <div class="section">
+            <h2 class="section-title">⭐ Student with Maximum Requests</h2>
+            <div id="top-student">
+                <div class="empty-state">
+                    <p>Loading student data...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="timestamp" id="timestamp"></div>
+    </div>
+
+    <script>
+        // Configuration
+        const CONFIG = {
+            BACKEND_URL: 'https://script.google.com/macros/d/1MmxXmK-5b_uKG5B1zcJlmGZCUb5zcJhpBrT2K8J5B-8/usercontent'
+        };
+
+        async function loadStatistics() {
+            try {
+                clearError();
+
+                const response = await fetch(CONFIG.BACKEND_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'getDeanStatistics',
+                        data: {}
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    showError(result.message || 'Failed to load statistics');
+                    return;
+                }
+
+                displayStatistics(result.data);
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+                showError('Failed to load statistics: ' + error.message);
+            }
+        }
+
+        function displayStatistics(data) {
+            // Summary stats
+            document.getElementById('total-requests').textContent = data.summary.totalRequests;
+            document.getElementById('completed-requests').textContent = data.summary.completedRequests;
+            document.getElementById('rejected-requests').textContent = data.summary.rejectedRequests;
+            document.getElementById('courses-added').textContent = data.summary.totalCoursesAdded;
+
+            // Advisors with pending
+            displayAdvisorsPending(data.advisorsPending);
+
+            // HODs with pending
+            displayHODsPending(data.hodsPending);
+
+            // Most used courses
+            displayMostUsedCourses(data.mostUsedCourses);
+
+            // Most popular sections
+            displayMostPopularSections(data.mostPopularSections);
+
+            // Top student
+            displayTopStudent(data.studentWithMaxRequests);
+
+            // Timestamp
+            const date = new Date(data.timestamp);
+            document.getElementById('timestamp').textContent = `Last updated: ${date.toLocaleString()}`;
+        }
+
+        function displayAdvisorsPending(advisors) {
+            const container = document.getElementById('advisors-pending');
+
+            if (!advisors || advisors.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No advisors with pending requests</p></div>';
+                return;
+            }
+
+            container.innerHTML = advisors.map(advisor => `
+                <div class="list-item">
+                    <div>
+                        <div class="list-name">${advisor.advisorName}</div>
+                        <div class="stat-subtext">${advisor.advisorEmail || 'No email'}</div>
+                    </div>
+                    <div class="list-count">${advisor.count}</div>
+                </div>
+            `).join('');
+        }
+
+        function displayHODsPending(hods) {
+            const container = document.getElementById('hods-pending');
+
+            if (!hods || hods.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No HODs with pending requests</p></div>';
+                return;
+            }
+
+            container.innerHTML = hods.map(hod => `
+                <div class="list-item">
+                    <div class="list-name">${hod.hodName}</div>
+                    <div class="list-count">${hod.count}</div>
+                </div>
+            `).join('');
+        }
+
+        function displayMostUsedCourses(courses) {
+            const container = document.getElementById('most-used-courses');
+
+            if (!courses || courses.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No course data available</p></div>';
+                return;
+            }
+
+            container.innerHTML = courses.map(item => `
+                <div class="list-item">
+                    <div class="list-name">${item.course}</div>
+                    <div class="list-count">${item.count}</div>
+                </div>
+            `).join('');
+        }
+
+        function displayMostPopularSections(sections) {
+            const container = document.getElementById('most-popular-sections');
+
+            if (!sections || sections.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No section data available</p></div>';
+                return;
+            }
+
+            container.innerHTML = sections.map(item => `
+                <div class="list-item">
+                    <div class="list-name">Section ${item.section}</div>
+                    <div class="list-count">${item.count}</div>
+                </div>
+            `).join('');
+        }
+
+        function displayTopStudent(student) {
+            const container = document.getElementById('top-student');
+
+            if (!student) {
+                container.innerHTML = '<div class="empty-state"><p>No student data available</p></div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div style="padding: 20px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <div class="stat-label">Student Name</div>
+                            <div style="font-size: 1.3em; color: #333; font-weight: 600; margin-bottom: 15px;">${student.studentName}</div>
+                        </div>
+                        <div>
+                            <div class="stat-label">Total Requests</div>
+                            <div style="font-size: 1.3em; color: #667eea; font-weight: 600; margin-bottom: 15px;">${student.requestCount}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="stat-label">Email</div>
+                        <div style="font-size: 1em; color: #666;">${student.studentEmail}</div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="stat-label">Student ID</div>
+                        <div style="font-size: 1em; color: #666; font-family: monospace;">${student.studentId}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            const container = document.getElementById('error-container');
+            container.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function clearError() {
+            document.getElementById('error-container').innerHTML = '';
+        }
+
+        // Load statistics on page load
+        window.addEventListener('DOMContentLoaded', loadStatistics);
+    </script>
+</body>
+</html>
