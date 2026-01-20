@@ -16,7 +16,7 @@ const CONFIG = {
   UNIVERSITY: 'Shaqra University',
   DEPARTMENT: 'College of Computing and Information Technology',
   // Replace with your actual Google Apps Script Web App URL
-  BACKEND_URL: 'https://script.google.com/macros/s/AKfycbzPmsAlh8AJ5BjyZyl0R9viONwsUWCsOa6VBy0ObxEp3t9kq1PsW0DwYN0bLmxDe4x84w/exec',
+  BACKEND_URL: 'https://script.google.com/macros/s/AKfycbyet9FADuTnTl2xh0IbUPBCCC5QV052RL9lx74Ad_GaQ1Wn7DGGI9xA4I9ZTZ0Uvi-KeA/exec',
   SESSION_KEY: 'dac_user_session',
   SETTINGS_KEY: 'dac_user_settings',
   TIMEOUT: 30000, // 30 seconds
