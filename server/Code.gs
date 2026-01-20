@@ -121,6 +121,9 @@ function doPost(e) {
       case 'getRequests':
         result = getRequests(data);
         break;
+      case 'getAdvisorPending':
+        result = getAdvisorPendingRequests();
+        break;
       case 'updateStatus':
         result = updateRequestStatus(data);
         break;
@@ -1051,11 +1054,13 @@ function getRequests(data) {
       const studentDetails = studentMap[studentId] || {};
       const requestId = row[0];
       
-      // Get advisor and HOD comments from approvals map
+      // Get advisor, HOD, and registrar comments from approvals map
       const advisorCommentsKey = `${requestId}_advisor`;
       const advisorComments = approvalMap[advisorCommentsKey] || '';
       const hodCommentsKey = `${requestId}_hod`;
       const hodComments = approvalMap[hodCommentsKey] || '';
+      const registrarCommentsKey = `${requestId}_registrar`;
+      const registrarComments = approvalMap[registrarCommentsKey] || '';
       
       requests.push({
         id: row[0],
@@ -1081,6 +1086,7 @@ function getRequests(data) {
         advisorEmail: row[19],
         advisorComments: advisorComments,
         hodComments: hodComments,
+        registrarComments: registrarComments,
         level: studentDetails.level || 'N/A',
         gpa: studentDetails.gpa || 'N/A',
         department: studentDetails.department || 'N/A',
@@ -1090,6 +1096,73 @@ function getRequests(data) {
   }
   
   return requests;
+}
+
+// Summarize requests that are still awaiting advisor action or were rejected by the advisor
+function getAdvisorPendingRequests() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const requestsSheet = ss.getSheetByName(SHEETS.REQUESTS);
+  if (!requestsSheet) {
+    throw new Error('Requests sheet not found');
+  }
+
+  const rows = requestsSheet.getDataRange().getValues();
+  const advisors = {};
+  let total = 0;
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const status = (row[10] || '').toString();
+    const advisorApproval = (row[12] || '').toString().toLowerCase();
+
+    const needsAdvisorAction = (status === 'awaiting_advisor') || (advisorApproval === 'rejected');
+    if (!needsAdvisorAction) continue;
+
+    const advisorId = row[17] || 'UNASSIGNED';
+    const advisorName = row[18] || 'Unassigned Advisor';
+    const advisorEmail = row[19] || '';
+
+    if (!advisors[advisorId]) {
+      advisors[advisorId] = {
+        advisorId,
+        advisorName,
+        advisorEmail,
+        pendingCount: 0,
+        requests: []
+      };
+    }
+
+    let courseDetails = {};
+    if (row[16]) {
+      try {
+        courseDetails = JSON.parse(row[16]);
+      } catch (e) {
+        courseDetails = {};
+      }
+    }
+
+    advisors[advisorId].pendingCount += 1;
+    advisors[advisorId].requests.push({
+      id: row[0],
+      studentId: row[1],
+      studentName: row[2],
+      studentEmail: row[3],
+      type: row[4],
+      reason: row[9],
+      status: status,
+      advisorApproval: row[12],
+      submittedDate: row[11],
+      courseDetails: courseDetails
+    });
+
+    total += 1;
+  }
+
+  const advisorList = Object.values(advisors).sort((a, b) => (a.advisorName || '').localeCompare(b.advisorName || ''));
+  return {
+    totalRequests: total,
+    advisors: advisorList
+  };
 }
 
 function updateRequestStatus(data) {
