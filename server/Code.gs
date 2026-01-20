@@ -1028,18 +1028,17 @@ function getRequests(data) {
         includeRequest = true;
       }
     } else if (data.userRole === 'registrar') {
-      // Registrar sees:
-      // - awaiting_registrar (pending registrar review)
-      // - completed (processed by registrar)
-      // - rejected ONLY if registrar rejected it (not if advisor/HOD rejected)
+      // Registrar sees all requests in their department, including earlier stages
       const studentId = row[1];
       const studentDept = studentMap[studentId] ? (studentMap[studentId].department || '') : '';
       const departmentMatches = !registrarDepartment || (studentDept === registrarDepartment);
       const status = row[10];
       const registrarApproval = row[14] || ''; // Column O (index 14)
       
-      // Show if awaiting registrar, completed, or rejected by registrar specifically
-      const shouldShow = (status === 'awaiting_registrar') || 
+      // Show if awaiting advisor, awaiting hod, awaiting registrar, completed, or rejected by registrar
+      const shouldShow = (status === 'awaiting_advisor') ||
+                        (status === 'awaiting_hod') ||
+                        (status === 'awaiting_registrar') ||
                         (status === 'completed') || 
                         (status === 'rejected' && registrarApproval === 'rejected');
       
@@ -1087,6 +1086,7 @@ function getRequests(data) {
         advisorComments: advisorComments,
         hodComments: hodComments,
         registrarComments: registrarComments,
+        pendingWith: (row[10] === 'awaiting_advisor') ? 'advisor' : (row[10] === 'awaiting_hod') ? 'hod' : (row[10] === 'awaiting_registrar') ? 'registrar' : '',
         level: studentDetails.level || 'N/A',
         gpa: studentDetails.gpa || 'N/A',
         department: studentDetails.department || 'N/A',
