@@ -79,9 +79,11 @@
               <button class="btn btn-secondary" onclick="downloadRequestsCSV()">⬇️ Download CSV</button>
               <select id="filterStatus" class="form-group" style="margin: 0; padding: 0.6rem; border: 2px solid var(--border-color); border-radius: 8px;">
                 <option value="all">All Requests</option>
-                <option value="awaiting_registrar" selected>Awaiting Processing</option>
+                <option value="awaiting_advisor">Pending with Advisor</option>
+                <option value="awaiting_hod">Pending with HOD</option>
+                <option value="awaiting_registrar" selected>Awaiting Registrar</option>
                 <option value="completed">Completed</option>
-                <option value="rejected">Rejected</option>
+                <option value="rejected">Rejected by Registrar</option>
               </select>
               <button class="btn btn-secondary" onclick="loadRequests()">🔄 Refresh</button>
             </div>
@@ -174,6 +176,8 @@
         if (filterStatus !== 'all') {
           filteredRequests = allRequests.filter(r => {
             if (filterStatus === 'awaiting_registrar') return r.status === 'awaiting_registrar';
+            if (filterStatus === 'awaiting_advisor') return r.status === 'awaiting_advisor';
+            if (filterStatus === 'awaiting_hod') return r.status === 'awaiting_hod';
             if (filterStatus === 'completed') return r.status === 'completed';
             if (filterStatus === 'rejected') return r.registrarApproval === 'rejected';
             return true;
@@ -249,7 +253,10 @@
           <td>${req.studentName}<br><small style="color: var(--light-text);">${req.studentEmail}</small><br><small style="color: var(--light-text);">UID: ${req.universityId || '—'}</small></td>
           <td><span class="badge badge-${req.type === 'add' ? 'success' : 'warning'}">${req.type.toUpperCase()}</span></td>
           <td>${formatCourseDisplay(req)}</td>
-          <td>${DACSystem.getStatusBadge(req.status)}</td>
+          <td>
+            ${DACSystem.getStatusBadge(req.status)}
+            ${req.pendingWith ? `<div style="color: var(--light-text); font-size: 0.82rem;">Waiting on: ${req.pendingWith.toUpperCase()}</div>` : ''}
+          </td>
           <td>${DACSystem.formatDate(req.submittedDate)}</td>
           <td>
             ${req.status === 'awaiting_registrar' ? 
@@ -338,6 +345,8 @@
       const registrarState = (() => {
         if (request.status === 'completed') return { label: '✓ Registrar (Completed)', color: '#0c7c3f' };
         if (request.registrarApproval === 'rejected' || request.status === 'rejected') return { label: '✗ Registrar (Rejected)', color: '#b00020' };
+        if (request.status === 'awaiting_hod') return { label: 'Pending with HOD', color: 'var(--text-color)' };
+        if (request.status === 'awaiting_advisor') return { label: 'Pending with Advisor', color: 'var(--text-color)' };
         return { label: '⏳ Registrar Processing', color: 'var(--text-color)' };
       })();
 
