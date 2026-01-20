@@ -124,6 +124,9 @@ function doPost(e) {
       case 'getAdvisorPending':
         result = getAdvisorPendingRequests();
         break;
+      case 'getDeanStatistics':
+        result = getDeanStatistics();
+        break;
       case 'updateStatus':
         result = updateRequestStatus(data);
         break;
@@ -1305,6 +1308,191 @@ function logError(context, error) {
     Logger.log(error && error.stack ? error.stack : 'no stack');
   } catch (e) {
     Logger.log('Failed to log error: ' + e);
+  }
+}
+
+// ===================================
+// DEAN STATISTICS
+// ===================================
+
+function getDeanStatistics() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const requestsSheet = ss.getSheetByName(SHEETS.REQUESTS);
+  const approvalsSheet = ss.getSheetByName(SHEETS.APPROVALS);
+  const requestsData = requestsSheet.getDataRange().getValues();
+  const approvalsData = approvalsSheet ? approvalsSheet.getDataRange().getValues() : [];
+  
+  // Initialize counters and maps
+  let totalRequests = 0;
+  let completedRequests = 0;
+  let rejectedRequests = 0;
+  let totalCoursesAdded = 0;
+  
+  const courseFrequency = {};
+  const sectionFrequency = {};
+  const studentRequestCount = {};
+  const advisorPending = {};
+  const hodPending = {};
+  
+  // Process requests
+  for (let i = 1; i < requestsData.length; i++) {
+    const row = requestsData[i];
+    const status = row[10] || '';
+    const advisorApproval = row[12] || '';
+    const hodApproval = row[13] || '';
+    const registrarApproval = row[14] || '';
+    const courseDetails = row[16] ? tryParse(row[16]) : {};
+    const studentId = row[1];
+    const advisorId = row[17];
+    const advisorName = row[18];
+    
+    // Count total requests
+    totalRequests += 1;
+    
+    // Count student requests
+    if (studentId) {
+      studentRequestCount[studentId] = (studentRequestCount[studentId] || 0) + 1;
+    }
+    
+    // Count completed requests (full approval chain completed)
+    if (status === 'completed') {
+      completedRequests += 1;
+    }
+    
+    // Count rejected requests (any rejection in chain)
+    if (status === 'rejected' || advisorApproval === 'rejected' || hodApproval === 'rejected' || registrarApproval === 'rejected') {
+      rejectedRequests += 1;
+    }
+    
+    // Count pending requests by advisor
+    if (status === 'awaiting_advisor') {
+      if (!advisorPending[advisorId]) {
+        advisorPending[advisorId] = {
+          advisorId: advisorId,
+          advisorName: advisorName,
+          count: 0
+        };
+      }
+      advisorPending[advisorId].count += 1;
+    }
+    
+    // Count pending requests by HOD - look through approvals to find HOD assignments
+    if (status === 'awaiting_hod') {
+      // Find the HOD from approvals
+      for (let a = 1; a < approvalsData.length; a++) {
+        if (approvalsData[a][0] === row[0] && approvalsData[a][1] === 'hod') {
+          const hodName = approvalsData[a][2];
+          if (!hodPending[hodName]) {
+            hodPending[hodName] = {
+              hodName: hodName,
+              count: 0
+            };
+          }
+          hodPending[hodName].count += 1;
+          break;
+        }
+      }
+      // If not found in approvals, still track the pending status
+      if (!Object.keys(hodPending).length || !hodPending[row[0]]) {
+        // Create a placeholder for pending HOD reviews
+        const placeholderKey = 'Pending_HOD_' + row[0];
+        if (!hodPending[placeholderKey]) {
+          hodPending[placeholderKey] = {
+            hodName: 'Under HOD Review',
+            count: 0
+          };
+        }
+        hodPending[placeholderKey].count += 1;
+      }
+    }
+    
+    // Count courses added
+    if (courseDetails.coursesToAdd && Array.isArray(courseDetails.coursesToAdd)) {
+      totalCoursesAdded += courseDetails.coursesToAdd.length;
+      
+      // Track course frequency
+      for (const course of courseDetails.coursesToAdd) {
+        const courseKey = course.code + ' - ' + course.name;
+        courseFrequency[courseKey] = (courseFrequency[courseKey] || 0) + 1;
+        
+        // Track section frequency
+        const sectionKey = course.section || 'Unknown';
+        sectionFrequency[sectionKey] = (sectionFrequency[sectionKey] || 0) + 1;
+      }
+    }
+  }
+  
+  // Build advisor pending list (sorted by count descending)
+  const advisorPendingList = Object.values(advisorPending)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+  
+  // Build HOD pending list (sorted by count descending)
+  const hodPendingList = Object.values(hodPending)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+  
+  // Find most used courses (top 5)
+  const mostUsedCourses = Object.entries(courseFrequency)
+    .map(([course, count]) => ({ course, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+  
+  // Find most popular sections (top 5)
+  const mostPopularSections = Object.entries(sectionFrequency)
+    .map(([section, count]) => ({ section, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+  
+  // Find student with most requests
+  let studentWithMaxRequests = null;
+  let maxCount = 0;
+  const studentsSheet = ss.getSheetByName(SHEETS.STUDENTS);
+  const studentsData = studentsSheet.getDataRange().getValues();
+  const studentMap = {};
+  
+  for (let i = 1; i < studentsData.length; i++) {
+    studentMap[studentsData[i][0]] = {
+      name: studentsData[i][1],
+      email: studentsData[i][3],
+      id: studentsData[i][0]
+    };
+  }
+  
+  for (const [studentId, count] of Object.entries(studentRequestCount)) {
+    if (count > maxCount) {
+      maxCount = count;
+      const student = studentMap[studentId];
+      studentWithMaxRequests = {
+        studentId: studentId,
+        studentName: student ? student.name : 'Unknown',
+        studentEmail: student ? student.email : 'Unknown',
+        requestCount: count
+      };
+    }
+  }
+  
+  return {
+    summary: {
+      totalRequests: totalRequests,
+      completedRequests: completedRequests,
+      rejectedRequests: rejectedRequests,
+      totalCoursesAdded: totalCoursesAdded
+    },
+    advisorsPending: advisorPendingList,
+    hodsPending: hodPendingList,
+    mostUsedCourses: mostUsedCourses,
+    mostPopularSections: mostPopularSections,
+    studentWithMaxRequests: studentWithMaxRequests,
+    timestamp: new Date().toISOString()
+  };
+}
+
+function tryParse(jsonStr) {
+  try {
+    return JSON.parse(jsonStr);
+  } catch (e) {
+    return {};
   }
 }
 
